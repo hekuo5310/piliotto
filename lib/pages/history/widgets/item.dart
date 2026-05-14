@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/common/constants.dart';
 import 'package:piliotto/common/widgets/network_img_layer.dart';
 import 'package:piliotto/utils/utils.dart';
 
 class HistoryItem extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
 
   const HistoryItem({
     super.key,
@@ -16,11 +16,11 @@ class HistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String heroTag = Utils.makeHeroTag(videoItem.vid);
+    final String heroTag = Utils.makeHeroTag(videoItem.id);
 
     return InkWell(
       onTap: () {
-        Get.toNamed('/video?vid=${videoItem.vid}', arguments: {
+        Get.toNamed('/video?vid=${videoItem.id}', arguments: {
           'heroTag': heroTag,
           'pic': videoItem.coverUrl,
         });
@@ -54,27 +54,7 @@ class HistoryItem extends StatelessWidget {
                                 height: maxHeight,
                               ),
                             ),
-                            if (videoItem.duration != null &&
-                                videoItem.duration! > 0)
-                              Positioned(
-                                right: 6.0,
-                                bottom: 8.0,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    Utils.timeFormat(videoItem.duration!),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            // 新API无duration字段
                           ],
                         );
                       },
@@ -92,7 +72,7 @@ class HistoryItem extends StatelessWidget {
 }
 
 class _VideoContent extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
 
   const _VideoContent({
     required this.videoItem,
@@ -117,11 +97,11 @@ class _VideoContent extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const Spacer(),
-            if (videoItem.username.isNotEmpty)
+            if ((videoItem.authorUsername ?? '').isNotEmpty)
               Row(
                 children: [
                   Text(
-                    videoItem.username,
+                    videoItem.authorUsername ?? '',
                     style: TextStyle(
                       fontSize:
                           Theme.of(context).textTheme.labelMedium!.fontSize,
@@ -134,7 +114,7 @@ class _VideoContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  videoItem.time,
+                  videoItem.createdAt ?? '',
                   style: TextStyle(
                       fontSize:
                           Theme.of(context).textTheme.labelMedium!.fontSize,

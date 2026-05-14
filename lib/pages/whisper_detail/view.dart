@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/message.dart';
+import 'package:piliotto/ottohub/api/models/message.dart' show ZerexaDirectMessage;
 import 'package:piliotto/utils/storage.dart';
 import 'controller.dart';
 
@@ -13,7 +13,7 @@ class WhisperDetailPage extends StatefulWidget {
 
 class _WhisperDetailPageState extends State<WhisperDetailPage> {
   late WhisperDetailController controller;
-  late final int friendUid;
+  late final String friendUid;
   late final String friendName;
   late final String? friendAvatar;
   late final String heroTag;
@@ -22,14 +22,14 @@ class _WhisperDetailPageState extends State<WhisperDetailPage> {
   void initState() {
     super.initState();
     final parameters = Get.parameters;
-    friendUid = int.tryParse(parameters['mid'] ?? '0') ?? 0;
+    friendUid = parameters['mid'] ?? '0';
     friendName = parameters['name'] ?? '';
     friendAvatar = parameters['face'];
     heroTag = parameters['heroTag'] ?? '';
 
     controller = Get.put(
       WhisperDetailController(
-        friendUid: friendUid,
+        friendUserId: friendUid,
         friendName: friendName,
         friendAvatar: friendAvatar,
         heroTag: heroTag,
@@ -42,7 +42,7 @@ class _WhisperDetailPageState extends State<WhisperDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final userInfo = GStrorage.userInfo.get('userInfoCache');
-    final myUid = userInfo?.mid ?? 0;
+    final myUid = userInfo?.mid?.toString() ?? '';
     final myAvatar = userInfo?.face;
 
     return Scaffold(
@@ -112,7 +112,7 @@ class _WhisperDetailPageState extends State<WhisperDetailPage> {
                   itemCount: controller.messages.length,
                   itemBuilder: (context, index) {
                     final message = controller.messages[index];
-                    final isMe = message.sender == myUid;
+                    final isMe = message.senderId == myUid;
                     return _buildMessageItem(message, isMe, theme, myAvatar);
                   },
                 ),
@@ -126,7 +126,7 @@ class _WhisperDetailPageState extends State<WhisperDetailPage> {
   }
 
   Widget _buildMessageItem(
-      Message message, bool isMe, ThemeData theme, String? myAvatar) {
+      ZerexaDirectMessage message, bool isMe, ThemeData theme, String? myAvatar) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -181,7 +181,7 @@ class _WhisperDetailPageState extends State<WhisperDetailPage> {
                       ? const EdgeInsets.only(right: 8)
                       : const EdgeInsets.only(left: 40),
                   child: Text(
-                    message.time,
+                    message.createdAt,
                     style: TextStyle(
                       fontSize: 11,
                       color: theme.colorScheme.onSurfaceVariant,

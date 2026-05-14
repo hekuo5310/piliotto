@@ -111,15 +111,10 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
 
   void searchDefault() async {
     try {
-      final response = await _videoRepo.getPopularVideos(
-        timeLimit: 7,
-        offset: 0,
-        num: 10,
-      );
-      if (response.videoList.isNotEmpty) {
-        final random =
-            DateTime.now().millisecondsSinceEpoch % response.videoList.length;
-        defaultSearch.value = response.videoList[random].title;
+      final videos = await _videoRepo.getVideos(sort: 'trending');
+      if (videos.isNotEmpty) {
+        final random = DateTime.now().millisecondsSinceEpoch % videos.length;
+        defaultSearch.value = videos[random].title;
       }
     } catch (e) {
       defaultSearch.value = '搜索视频';

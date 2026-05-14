@@ -108,7 +108,7 @@ class _FavDetailPageState extends State<FavDetailPage> {
               }
               final video = _favDetailController.favList[index];
               return Dismissible(
-                key: Key('fav_detail_${video.vid}'),
+                key: Key('fav_detail_${video.id}'),
                 direction: DismissDirection.endToStart,
                 background: Container(
                   alignment: Alignment.centerRight,
@@ -117,7 +117,7 @@ class _FavDetailPageState extends State<FavDetailPage> {
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 onDismissed: (direction) {
-                  _favDetailController.removeFavorite(video.vid);
+                  _favDetailController.removeFavorite(video.id);
                 },
                 child: VideoCardH(videoItem: video),
               );

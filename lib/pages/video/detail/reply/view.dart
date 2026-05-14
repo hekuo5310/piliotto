@@ -10,7 +10,7 @@ import 'widgets/comment_input.dart';
 import '../controller.dart';
 
 class VideoReplyPanel extends StatefulWidget {
-  final int vid;
+  final String vid;
   final int rpid;
   final String? replyLevel;
   final Function(ScrollController)? onControllerCreated;
@@ -45,7 +45,7 @@ class VideoReplyPanelState extends State<VideoReplyPanel>
   @override
   void initState() {
     super.initState();
-    _controllerTag = Get.arguments?['heroTag'] ?? widget.vid.toString();
+    _controllerTag = Get.arguments?['heroTag'] ?? widget.vid;
     replyLevel = widget.replyLevel ?? '1';
 
     _initController();
@@ -198,13 +198,13 @@ class VideoReplyPanelState extends State<VideoReplyPanel>
                       replyLevel: replyLevel,
                       replyReply: (replyItem, currentReply, loadMore) {
                         final heroTag =
-                            Get.arguments?['heroTag'] ?? widget.vid.toString();
+                            Get.arguments?['heroTag'] ?? widget.vid;
                         try {
                           final videoDetailCtr =
                               Get.find<VideoDetailController>(tag: heroTag);
                           videoDetailCtr.showReplyReplyPanel(
-                            widget.vid,
-                            replyItem.rpid,
+                            int.tryParse(widget.vid) ?? 0,
+                            replyItem.rpid ?? 0,
                             replyItem,
                             currentReply,
                             loadMore,
@@ -222,7 +222,7 @@ class VideoReplyPanelState extends State<VideoReplyPanel>
           ),
         ),
         CommentInput(
-          vid: widget.vid,
+          vid: int.tryParse(widget.vid) ?? 0,
           onCommentSuccess: () {
             refresh();
           },

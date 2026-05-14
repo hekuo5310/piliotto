@@ -79,11 +79,11 @@ class _VideoReplyNewDialogState extends State<VideoReplyNewDialog>
     }
     try {
       final res = await _commentRepo.commentVideo(
-        vid: widget.oid!,
-        parentVcid: widget.parent ?? 0,
+        videoId: widget.oid!.toString(),
+        parentId: widget.parent != null ? widget.parent.toString() : null,
         content: _replyContentController.text,
       );
-      if (res['status'] == 'success') {
+      if (res['success'] == true) {
         SmartDialog.showToast('评论成功');
         Get.back(result: true);
       } else {

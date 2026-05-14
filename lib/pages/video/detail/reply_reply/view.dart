@@ -49,7 +49,9 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
   @override
   void initState() {
     _videoReplyReplyController = Get.put(
-        VideoReplyReplyController(widget.vid ?? 0, widget.parentVcid ?? 0,
+        VideoReplyReplyController(
+            (widget.vid ?? 0).toString(),
+            (widget.parentVcid ?? 0).toString(),
             widget.replyType ?? ReplyType.video),
         tag: widget.parentVcid.toString());
     super.initState();
@@ -164,7 +166,7 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
           ),
           CommentInput(
             vid: widget.vid ?? 0,
-            parentVcid: widget.parentVcid ?? 0,
+            parentId: widget.parentVcid?.toString(),
             placeholder: '回复评论...',
             onCommentSuccess: () {
               _videoReplyReplyController.currentPage = 0;

@@ -1,48 +1,85 @@
+class ZerexaUser {
+  final String id;
+  final int uid;
+  final String username;
+  final String role;
+  final String? email;
+  final String? gravatarUrl;
+  final int? followerCount;
+  final int? followingCount;
+  final String? createdAt;
+
+  ZerexaUser({
+    required this.id,
+    required this.uid,
+    required this.username,
+    required this.role,
+    this.email,
+    this.gravatarUrl,
+    this.followerCount,
+    this.followingCount,
+    this.createdAt,
+  });
+
+  factory ZerexaUser.fromJson(Map<String, dynamic> json) {
+    return ZerexaUser(
+      id: json['id']?.toString() ?? '',
+      uid: _toInt(json['uid']),
+      username: json['username']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'user',
+      email: json['email']?.toString(),
+      gravatarUrl: json['gravatar_url']?.toString(),
+      followerCount: _toInt(json['follower_count']),
+      followingCount: _toInt(json['following_count']),
+      createdAt: json['created_at']?.toString(),
+    );
+  }
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    return int.tryParse(v.toString()) ?? 0;
+  }
+
+  bool get isAdmin => role == 'admin';
+}
+
 class LoginResponse {
-  final String uid;
+  final bool success;
   final String? token;
-  final String avatarUrl;
-  final String coverUrl;
-  final String ifTodayFirstLogin;
-  final String email;
-  final int isAudit;
-  final int isAdmin;
+  final ZerexaUser? user;
+  final String? error;
+  final String? code;
 
   LoginResponse({
-    required this.uid,
+    required this.success,
     this.token,
-    required this.avatarUrl,
-    required this.coverUrl,
-    required this.ifTodayFirstLogin,
-    required this.email,
-    required this.isAudit,
-    required this.isAdmin,
+    this.user,
+    this.error,
+    this.code,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
-      uid: json['uid']?.toString() ?? '',
-      token: json['token'],
-      avatarUrl: json['avatar_url'] ?? '',
-      coverUrl: json['cover_url'] ?? '',
-      ifTodayFirstLogin: json['if_today_first_login'] ?? 'no',
-      email: json['email'] ?? '',
-      isAudit: json['is_audit'] ?? 0,
-      isAdmin: json['is_admin'] ?? 0,
+      success: json['success'] == true,
+      token: json['token']?.toString(),
+      user: json['user'] != null ? ZerexaUser.fromJson(json['user']) : null,
+      error: json['error']?.toString(),
+      code: json['code']?.toString(),
     );
   }
 }
 
 class SignInResponse {
-  final String ifTodayFirstLogin;
+  final bool success;
+  final int? coins;
 
-  SignInResponse({
-    required this.ifTodayFirstLogin,
-  });
+  SignInResponse({required this.success, this.coins});
 
   factory SignInResponse.fromJson(Map<String, dynamic> json) {
     return SignInResponse(
-      ifTodayFirstLogin: json['if_today_first_login'] ?? 'no',
+      success: json['success'] == true,
+      coins: json['coins'] is int ? json['coins'] : null,
     );
   }
 }

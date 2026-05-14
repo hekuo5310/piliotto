@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:piliotto/utils/feed_back.dart';
 import 'package:piliotto/utils/image_save.dart';
 
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/repositories/i_user_repository.dart';
 import '../../utils/utils.dart';
 import '../constants.dart';
@@ -37,52 +37,39 @@ class VideoCardH extends StatelessWidget {
   final bool showCharge;
   final int? rankIndex;
 
-  int get _videoId {
-    if (videoItem is Video) {
-      return videoItem.vid;
-    }
-    return videoItem.vid ?? videoItem.aid ?? 0;
+  String get _videoId {
+    if (videoItem is ZerexaVideo) return videoItem.id;
+    return videoItem.vid?.toString() ?? videoItem.aid?.toString() ?? '0';
   }
 
   String get _coverUrl {
-    if (videoItem is Video) {
-      return videoItem.coverUrl ?? '';
+    if (videoItem is ZerexaVideo) return videoItem.coverUrl ?? '';
     }
     return videoItem.pic ?? videoItem.coverUrl ?? '';
   }
 
   String get _title {
-    if (videoItem is Video) {
-      return videoItem.title ?? '';
-    }
+    if (videoItem is ZerexaVideo) return videoItem.title ?? '';
     return videoItem.title ?? '';
   }
 
   String get _ownerName {
-    if (videoItem is Video) {
-      return videoItem.username ?? '';
-    }
+    if (videoItem is ZerexaVideo) return videoItem.authorUsername ?? '';
     return videoItem.owner?.name ?? videoItem.author ?? '';
   }
 
   int get _viewCount {
-    if (videoItem is Video) {
-      return videoItem.viewCount ?? 0;
-    }
+    if (videoItem is ZerexaVideo) return videoItem.views;
     return videoItem.stat?.view ?? videoItem.play ?? 0;
   }
 
   int? get _danmakuCount {
-    if (videoItem is Video) {
-      return null;
-    }
+    if (videoItem is ZerexaVideo) return null;
     return videoItem.stat?.danmaku ?? videoItem.videoReview ?? 0;
   }
 
   int get _duration {
-    if (videoItem is Video) {
-      return videoItem.duration ?? 0;
-    }
+    if (videoItem is ZerexaVideo) return 0;
     final dur = videoItem.duration ?? videoItem.length;
     if (dur is int) return dur;
     if (dur is String) return int.tryParse(dur) ?? 0;
@@ -90,14 +77,11 @@ class VideoCardH extends StatelessWidget {
   }
 
   int? get _pubdate {
-    if (videoItem is Video) {
-      final time = videoItem.time;
-      if (time is int) return time;
-      if (time is String) {
-        final dt = DateTime.tryParse(time);
-        return dt != null ? dt.millisecondsSinceEpoch ~/ 1000 : null;
-      }
-      return null;
+    if (videoItem is ZerexaVideo) {
+      final time = videoItem.createdAt;
+      if (time == null) return null;
+      final dt = DateTime.tryParse(time);
+      return dt != null ? dt.millisecondsSinceEpoch ~/ 1000 : null;
     }
     return videoItem.pubdate ?? videoItem.created;
   }
@@ -321,53 +305,17 @@ class MorePanel extends StatelessWidget {
   const MorePanel({super.key, required this.videoItem});
 
   String get _ownerName {
-    if (videoItem is Video) {
-      return videoItem.username ?? '';
-    }
+    if (videoItem is ZerexaVideo) return videoItem.authorUsername ?? '';
     return videoItem.owner?.name ?? videoItem.author ?? '';
   }
 
-  int get _ownerId {
-    if (videoItem is Video) {
-      return videoItem.uid;
-    }
-    return videoItem.owner?.mid ?? videoItem.mid ?? 0;
+  String get _ownerId {
+    if (videoItem is ZerexaVideo) return videoItem.id ?? '';
+    return videoItem.owner?.mid?.toString() ?? videoItem.mid?.toString() ?? '';
   }
 
   void blockUser() async {
-    SmartDialog.show(
-      useSystem: true,
-      animationType: SmartAnimationType.centerFade_otherSlide,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('提示'),
-          content:
-              Text('确定拉黑:$_ownerName($_ownerId)?\n\n注：被拉黑的Up可以在隐私设置-黑名单管理中解除'),
-          actions: [
-            TextButton(
-              onPressed: () => SmartDialog.dismiss(),
-              child: Text(
-                '点错了',
-                style: TextStyle(color: Theme.of(context).colorScheme.outline),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await Get.find<IUserRepository>().blockUser(blockedId: _ownerId);
-                  SmartDialog.dismiss();
-                  SmartDialog.showToast('拉黑成功');
-                } catch (error) {
-                  SmartDialog.dismiss();
-                  SmartDialog.showToast('拉黑失败: $error');
-                }
-              },
-              child: const Text('确认'),
-            )
-          ],
-        );
-      },
-    );
+    SmartDialog.showToast('新API暂不支持拉黑功能');
   }
 
   @override

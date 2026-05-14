@@ -18,7 +18,7 @@ import 'package:piliotto/utils/storage.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import '../../../ottohub/api/models/video.dart';
+import '../../../ottohub/api/models/video.dart' show ZerexaVideo;
 import '../../../plugin/pl_player/models/bottom_control_type.dart';
 import 'widgets/danmaku_send_sheet.dart';
 import 'widgets/header_control.dart';
@@ -26,12 +26,9 @@ import 'widgets/header_control.dart';
 class VideoDetailController extends GetxController
     with GetSingleTickerProviderStateMixin {
   /// 路由传参
-  int vid = int.tryParse(
-          Get.parameters['vid'] ?? Get.arguments?['vid']?.toString() ?? '0') ??
-      0;
+  String vid = Get.parameters['vid'] ?? Get.arguments?['vid']?.toString() ?? '';
   String heroTag = Get.arguments?['heroTag'] ?? '';
-  // 视频详情
-  late Video videoItem;
+  late ZerexaVideo videoItem;
   // 视频类型 默认投稿视频
   String videoType = Get.arguments?['videoType'] ?? 'video';
 
@@ -246,7 +243,7 @@ class VideoDetailController extends GetxController
       videoItem = await _videoRepo.getVideoDetail(vid);
       logger.d('获取视频详情成功: ${videoItem.title}');
       updateCover(videoItem.coverUrl);
-      videoUrl = videoItem.videoUrl ?? '';
+      videoUrl = videoItem.streamUrl ?? '';
       logger.d('生成视频URL: $videoUrl');
 
       // 检查视频URL是否有效
@@ -298,8 +295,8 @@ class VideoDetailController extends GetxController
         type: DataSourceType.network,
       ),
       seekTo: seekToTime ?? defaultST,
-      duration: duration ?? Duration(seconds: (videoItem.duration ?? 0)),
-      vid: videoItem.vid,
+      duration: duration ?? Duration.zero,
+      vid: videoItem.id,
       enableHeart: enableHeart,
       isFirstTime: isFirstTime,
       autoplay: autoplay ?? autoPlay.value,
@@ -340,7 +337,7 @@ class VideoDetailController extends GetxController
           }
           Color color = _parseDanmakuColor(danmaku.color);
           DanmakuContentItem item = DanmakuContentItem(
-            danmaku.text,
+            danmaku.content,
             color: color,
             type: type,
           );
@@ -380,13 +377,11 @@ class VideoDetailController extends GetxController
       currentTime: plPlayerController.position.value.inSeconds,
       onSend: ({required vid, required text, required time, required mode, required color, required fontSize}) {
         return _danmakuRepo.sendDanmaku(
-          vid: vid,
-          text: text,
-          time: time,
+          videoId: vid.toString(),
+          content: text,
+          timeSec: (time is num) ? time.toDouble() : double.tryParse(time.toString()) ?? 0.0,
           mode: mode,
           color: color,
-          fontSize: fontSize,
-          render: '',
         );
       },
     );

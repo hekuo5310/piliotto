@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/repositories/i_video_repository.dart';
 import 'package:piliotto/services/loggeer.dart';
 import 'package:piliotto/utils/responsive_util.dart';
@@ -11,14 +11,9 @@ class FavController extends GetxController {
   final IVideoRepository _videoRepo = Get.find<IVideoRepository>();
   final ScrollController scrollController = ScrollController();
 
-  RxList<Video> favoriteList = <Video>[].obs;
+  RxList<ZerexaVideo> favoriteList = <ZerexaVideo>[].obs;
   RxBool isLoading = false.obs;
-  RxBool isLoadingMore = false.obs;
-  RxBool hasMore = true.obs;
   RxInt crossAxisCount = 1.obs;
-
-  int _currentPage = 0;
-  final int _pageSize = 20;
 
   @override
   void onInit() {
@@ -28,64 +23,32 @@ class FavController extends GetxController {
 
   void updateCrossAxisCount() {
     try {
-      int baseCount = ResponsiveUtil.calculateCrossAxisCount(
-        baseCount: 1,
-        minCount: 1,
-        maxCount: 3,
-      );
-      crossAxisCount.value = baseCount;
+      crossAxisCount.value = ResponsiveUtil.calculateCrossAxisCount(baseCount: 1, minCount: 1, maxCount: 3);
     } catch (e) {
       crossAxisCount.value = 1;
     }
   }
 
   Future<void> queryFavorites({bool isLoadMore = false}) async {
-    if (isLoading.value || isLoadingMore.value) return;
-
-    if (!isLoadMore) {
-      isLoading.value = true;
-      _currentPage = 0;
-    } else {
-      if (!hasMore.value) return;
-      isLoadingMore.value = true;
-    }
-
+    if (isLoading.value) return;
+    isLoading.value = true;
     try {
-      final response = await _videoRepo.getFavoriteVideos(
-        offset: _currentPage,
-        num: _pageSize,
-      );
-
-      final List<Video> videos = response.videoList;
-
-      if (isLoadMore) {
-        favoriteList.addAll(videos);
-      } else {
-        favoriteList.value = videos;
-      }
-
-      hasMore.value = videos.length >= _pageSize;
-      _currentPage++;
+      final videos = await _videoRepo.getMyFavorites();
+      favoriteList.value = videos;
     } catch (e) {
       _logger.e('获取收藏列表失败: $e');
     } finally {
       isLoading.value = false;
-      isLoadingMore.value = false;
     }
   }
 
-  Future<void> onLoad() async {
-    await queryFavorites(isLoadMore: true);
-  }
+  Future<void> onLoad() async {}
+  Future<void> onRefresh() async => queryFavorites();
 
-  Future<void> onRefresh() async {
-    await queryFavorites();
-  }
-
-  Future<void> removeFavorite(int vid) async {
+  Future<void> removeFavorite(String id) async {
     try {
-      await _videoRepo.toggleFavorite(vid: vid);
-      favoriteList.removeWhere((v) => v.vid == vid);
+      await _videoRepo.unfavorite(id);
+      favoriteList.removeWhere((v) => v.id == id);
     } catch (e) {
       _logger.e('取消收藏失败: $e');
     }
@@ -93,12 +56,6 @@ class FavController extends GetxController {
 
   void animateToTop() async {
     if (!scrollController.hasClients) return;
-    if (scrollController.offset >=
-        MediaQuery.of(Get.context!).size.height * 5) {
-      scrollController.jumpTo(0);
-    } else {
-      await scrollController.animateTo(0,
-          duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
-    }
+    scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 }

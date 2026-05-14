@@ -451,15 +451,15 @@ class _FlatReplyItemState extends State<FlatReplyItem> {
           try {
             Map<String, dynamic> result;
             if (widget.isBlogComment) {
-              result = await _commentRepo.deleteBlogComment(
-                bcid: widget.replyItem.rpid!,
-              );
+              SmartDialog.showToast('新API暂不支持动态评论删除');
+              return;
             } else {
               result = await _commentRepo.deleteVideoComment(
-                vcid: widget.replyItem.rpid!,
+                videoId: '',
+                commentId: widget.replyItem.rpid!.toString(),
               );
             }
-            if (result['status'] == 'success') {
+            if (result['success'] == true) {
               SmartDialog.showToast('删除成功');
               widget.onRefresh?.call();
             } else {

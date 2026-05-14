@@ -1,7 +1,7 @@
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/following.dart';
+import 'package:piliotto/ottohub/api/models/following.dart' show ZerexaFollowUser;
 import 'package:piliotto/common/widgets/network_img_layer.dart';
 import 'package:piliotto/common/widgets/no_data.dart';
 import 'package:piliotto/utils/feed_back.dart';
@@ -12,7 +12,7 @@ class UserListPage extends StatefulWidget {
   final Future<void> Function() onRefresh;
   final Future<void> Function() onLoad;
   final Future<void> Function() onInit;
-  final RxList<FollowingUser> userList;
+  final RxList<ZerexaFollowUser> userList;
   final RxBool isLoading;
   final RxBool hasMore;
   final RxString loadingText;

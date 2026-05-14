@@ -1,4 +1,3 @@
-import '../api/services/legacy_api_service.dart';
 import '../api/services/video_service.dart';
 import '../api/models/video.dart';
 import '../models/member/archive.dart';
@@ -7,128 +6,94 @@ import 'package:piliotto/repositories/i_video_repository.dart';
 
 class OttohubVideoRepository extends BaseRepository implements IVideoRepository {
   @override
-  Future<VideoListResponse> getRandomVideos({int num = 20}) {
+  Future<List<ZerexaVideo>> getVideos({String? category, String sort = 'latest'}) {
     return withCache(
-      'getRandomVideos',
-      () => VideoService.getRandomVideos(num: num),
+      'getVideos_${category}_$sort',
+      () => VideoService.getVideos(category: category, sort: sort),
     );
   }
 
   @override
-  Future<VideoListResponse> getPopularVideos({
-    int timeLimit = 7,
-    int offset = 0,
-    int num = 20,
-  }) {
+  Future<ZerexaVideo> getVideoDetail(String id, {CacheConfig? cacheConfig}) {
     return withCache(
-      'getPopularVideos_${timeLimit}_$offset',
-      () => VideoService.getPopularVideos(
-        timeLimit: timeLimit,
-        offset: offset,
-        num: num,
-      ),
+      'getVideoDetail_$id',
+      () => VideoService.getVideoDetail(id),
+      cacheConfig: cacheConfig ?? const CacheConfig(duration: Duration(minutes: 2)),
     );
   }
 
   @override
-  Future<VideoListResponse> searchVideos({
-    String? searchTerm,
-    int offset = 0,
-    int num = 20,
-    int vidDesc = 0,
-    int viewCountDesc = 0,
-    int likeCountDesc = 0,
-    int favoriteCountDesc = 0,
-    int? uid,
-    String? type,
-  }) {
-    return VideoService.searchVideos(
-      searchTerm: searchTerm,
-      offset: offset,
-      num: num,
-      vidDesc: vidDesc,
-      viewCountDesc: viewCountDesc,
-      likeCountDesc: likeCountDesc,
-      favoriteCountDesc: favoriteCountDesc,
-      uid: uid,
-      type: type,
-    );
+  Future<List<ZerexaVideo>> getRecommend({String? userId, String? exclude, String? category}) {
+    return VideoService.getRecommend(userId: userId, exclude: exclude, category: category);
   }
 
   @override
-  Future<Video> getVideoDetail(int vid, {CacheConfig? cacheConfig}) {
-    return withCache(
-      'getVideoDetail_$vid',
-      () => VideoService.getVideoDetail(vid),
-      cacheConfig:
-          cacheConfig ?? const CacheConfig(duration: Duration(minutes: 2)),
-    );
+  Future<Map<String, dynamic>> search(String q) => VideoService.search(q);
+
+  @override
+  Future<VideoLikeResponse> toggleLike(String id) {
+    invalidateCache('getVideoDetail_$id');
+    return VideoService.toggleLike(id);
   }
 
   @override
-  Future<VideoListResponse> getRelatedVideos(int vid,
-      {int num = 20, int offset = 0}) {
-    return withCache(
-      'getRelatedVideos_${vid}_$offset',
-      () => VideoService.getRelatedVideos(vid, num: num, offset: offset),
-    );
+  Future<VideoFavoriteResponse> favorite(String id) {
+    invalidateCache('getVideoDetail_$id');
+    return VideoService.favorite(id);
   }
 
   @override
-  Future<VideoListResponse> getFavoriteVideos({int offset = 0, int num = 20}) {
-    return VideoService.getFavoriteVideos(offset: offset, num: num);
+  Future<VideoFavoriteResponse> unfavorite(String id) {
+    invalidateCache('getVideoDetail_$id');
+    return VideoService.unfavorite(id);
   }
 
   @override
-  Future<VideoListResponse> getManageVideos({int offset = 0, int num = 20}) {
-    return VideoService.getManageVideos(offset: offset, num: num);
+  Future<bool> getFavoritedStatus(String id) => VideoService.getFavoritedStatus(id);
+
+  @override
+  Future<VideoCoinResponse> coin(String id, {int amount = 1}) => VideoService.coin(id, amount: amount);
+
+  @override
+  Future<void> watch(String id, {required int watchSeconds, required int videoSeconds}) =>
+      VideoService.watch(id, watchSeconds: watchSeconds, videoSeconds: videoSeconds);
+
+  @override
+  Future<void> deleteVideo(String id) {
+    invalidateCache('getVideoDetail_$id');
+    return VideoService.deleteVideo(id);
   }
 
   @override
-  Future<VideoListResponse> getHistoryVideos() {
-    return VideoService.getHistoryVideos();
+  Future<void> updateVideo(String id, {required String title, required String description, required String category, String? sourceUrl}) {
+    invalidateCache('getVideoDetail_$id');
+    return VideoService.updateVideo(id, title: title, description: description, category: category, sourceUrl: sourceUrl);
   }
 
   @override
-  Future<VideoListResponse> getUserVideos(int uid,
-      {int offset = 0, int num = 20}) {
-    return VideoService.getUserVideos(uid, offset: offset, num: num);
-  }
+  Future<void> reportVideo(String id, {required String reason, String? details}) =>
+      VideoService.reportVideo(id, reason: reason, details: details);
 
   @override
-  Future<VideoActionResponse> toggleLike({required int vid}) {
-    invalidateCache('getVideoDetail_$vid');
-    return VideoService.toggleLike(vid: vid);
-  }
+  Future<List<ZerexaVideo>> getMyVideos() => VideoService.getMyVideos();
 
   @override
-  Future<VideoActionResponse> toggleFavorite({required int vid}) {
-    invalidateCache('getVideoDetail_$vid');
-    return VideoService.toggleFavorite(vid: vid);
-  }
+  Future<List<ZerexaVideo>> getMyFavorites() => VideoService.getMyFavorites();
 
   @override
-  Future<void> saveWatchHistory(
-      {required int vid, required int lastWatchSecond}) {
-    return VideoService.saveWatchHistory(
-        vid: vid, lastWatchSecond: lastWatchSecond);
-  }
+  Future<List<ZerexaVideo>> getUserVideos(String userId) => VideoService.getUserVideos(userId);
 
   @override
-  Future<void> deleteVideo({required int vid}) {
-    invalidateCache('getVideoDetail_$vid');
-    return VideoService.deleteVideo(vid: vid);
-  }
-
-  @override
-  Future<List<VListItemModel>> getUserVideoList(
-      {required int uid, int offset = 0, int num = 20}) async {
-    final res = await LegacyApiService.getUserVideoList(
-        uid: uid, offset: offset, num: num);
-    if (res['status'] == 'success') {
-      final List<dynamic> videoList = res['video_list'] as List;
-      return videoList.map((v) => VListItemModel.fromJson(v)).toList();
-    }
-    throw Exception(res['message'] ?? '获取用户视频失败');
+  Future<List<VListItemModel>> getUserVideoList({required String userId}) async {
+    final videos = await VideoService.getUserVideos(userId);
+    return videos.map((v) => VListItemModel(
+      title: v.title,
+      pic: v.coverUrl,
+      description: v.description,
+      play: v.views,
+      review: v.likes,
+      author: v.authorUsername,
+      mid: v.authorUid,
+    )).toList();
   }
 }

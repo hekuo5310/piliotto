@@ -19,12 +19,12 @@ class _MemberArchivePageState extends State<MemberArchivePage> {
   late MemberArchiveController _memberArchivesController;
   late Future _futureBuilderFuture;
   late ScrollController scrollController;
-  late int mid;
+  late String mid;
 
   @override
   void initState() {
     super.initState();
-    mid = int.parse(Get.parameters['mid']!);
+    mid = Get.parameters['mid'] ?? '';
     final String heroTag = Utils.makeHeroTag(mid);
     _memberArchivesController =
         Get.put(MemberArchiveController(), tag: heroTag);

@@ -7,14 +7,14 @@ import 'package:piliotto/utils/storage.dart';
 
 class CommentInput extends StatefulWidget {
   final int vid;
-  final int parentVcid;
+  final String? parentId;
   final String? placeholder;
   final Function()? onCommentSuccess;
 
   const CommentInput({
     super.key,
     required this.vid,
-    this.parentVcid = 0,
+    this.parentId,
     this.placeholder,
     this.onCommentSuccess,
   });
@@ -34,7 +34,7 @@ class _CommentInputState extends State<CommentInput> {
   @override
   void initState() {
     super.initState();
-    _token = GStrorage.setting.get('ottohub_token');
+    _token = GStrorage.setting.get('zerexa_token');
     _controller.addListener(() {
       setState(() {
         _hasText = _controller.text.isNotEmpty;
@@ -72,12 +72,12 @@ class _CommentInputState extends State<CommentInput> {
 
     try {
       final response = await _commentRepo.commentVideo(
-        vid: widget.vid,
-        parentVcid: widget.parentVcid,
+        videoId: widget.vid.toString(),
+        parentId: widget.parentId,
         content: content,
       );
 
-      if (response['status'] == 'success') {
+      if (response['success'] == true) {
         SmartDialog.showToast('评论成功喵~');
         _controller.clear();
         _focusNode.unfocus();

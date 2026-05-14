@@ -5,82 +5,42 @@ import 'package:piliotto/utils/storage.dart';
 
 class MessageController extends GetxController {
   final IMessageRepository _messageRepo = Get.find<IMessageRepository>();
-  RxList<Friend> friendList = <Friend>[].obs;
+  RxList<ZerexaConversation> friendList = <ZerexaConversation>[].obs;
   RxBool isLoading = false.obs;
   RxString errorMessage = ''.obs;
 
-  Rxn<Friend> selectedFriend = Rxn<Friend>();
-  Rxn<Friend> currentUser = Rxn<Friend>();
-  RxList<Friend> userList = <Friend>[].obs;
-
-  int _offset = 0;
-  final int _pageSize = 20;
-  bool _hasMore = true;
+  Rxn<ZerexaConversation> selectedFriend = Rxn<ZerexaConversation>();
 
   @override
   void onInit() {
     super.onInit();
-    _initCurrentUser();
     _checkInitialFriend();
     loadFriendList();
   }
 
-  void _initCurrentUser() {
-    final userInfo = GStrorage.userInfo.get('userInfoCache');
-    if (userInfo != null) {
-      currentUser.value = Friend(
-        uid: userInfo.mid ?? 0,
-        username: userInfo.uname ?? '',
-        avatarUrl: userInfo.face,
-      );
-    }
-  }
-
   void _checkInitialFriend() {
     final parameters = Get.parameters;
-    final mid = parameters['mid'];
+    final userId = parameters['mid'];
     final name = parameters['name'];
     final face = parameters['face'];
 
-    if (mid != null && name != null) {
-      selectedFriend.value = Friend(
-        uid: int.tryParse(mid) ?? 0,
-        username: name,
-        avatarUrl: face,
+    if (userId != null && name != null) {
+      selectedFriend.value = ZerexaConversation(
+        otherUser: ZerexaOtherUser(id: userId, uid: int.tryParse(userId) ?? 0, username: name, gravatarUrl: face),
+        lastMessage: '',
+        lastMessageAt: '',
+        unreadCount: 0,
       );
     }
   }
 
   Future loadFriendList({bool refresh = false}) async {
     if (isLoading.value) return;
-
-    if (refresh) {
-      _offset = 0;
-      _hasMore = true;
-      friendList.clear();
-    }
-
-    if (!_hasMore) return;
-
     isLoading.value = true;
     errorMessage.value = '';
-
     try {
-      final myUid = currentUser.value?.uid ?? GStrorage.userInfo.get('userInfoCache')?.mid ?? 0;
-
-      final allFriends = await _messageRepo.getMergedFriendList(
-        uid: myUid,
-        offset: _offset,
-        pageSize: _pageSize,
-      );
-
-      if (allFriends.length < _pageSize) {
-        _hasMore = false;
-      }
-
-      friendList.addAll(allFriends);
-      _updateUserList(allFriends);
-      _offset += allFriends.length;
+      final convs = await _messageRepo.getConversations();
+      friendList.assignAll(convs);
     } catch (e) {
       errorMessage.value = '加载失败: $e';
     } finally {
@@ -88,29 +48,11 @@ class MessageController extends GetxController {
     }
   }
 
-  void _updateUserList(List<Friend> friends) {
-    for (final friend in friends) {
-      if (!userList.any((u) => u.uid == friend.uid)) {
-        userList.add(friend);
-      }
-    }
-  }
-
-  void selectFriend(Friend friend) {
-    selectedFriend.value = friend;
+  void selectFriend(ZerexaConversation conv) {
+    selectedFriend.value = conv;
   }
 
   void clearSelection() {
     selectedFriend.value = null;
-  }
-
-  void switchUser(Friend user) {
-    currentUser.value = user;
-    selectedFriend.value = null;
-    friendList.clear();
-    userList.clear();
-    _offset = 0;
-    _hasMore = true;
-    loadFriendList(refresh: true);
   }
 }

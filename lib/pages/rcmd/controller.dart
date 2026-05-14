@@ -3,7 +3,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:piliotto/repositories/i_video_repository.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/utils/responsive_util.dart';
 import 'package:piliotto/utils/storage.dart';
 import 'package:piliotto/services/loggeer.dart';
@@ -16,14 +16,14 @@ class RcmdController extends GetxController {
   Box setting = GStrorage.setting;
   RxInt crossAxisCount = 2.obs;
   late bool enableSaveLastData;
-  late RxList<Video> videoList;
+  late RxList<ZerexaVideo> videoList;
 
   @override
   void onInit() {
     super.onInit();
     enableSaveLastData =
         setting.get(SettingBoxKey.enableSaveLastData, defaultValue: false);
-    videoList = <Video>[].obs;
+    videoList = <ZerexaVideo>[].obs;
     // 初始计算列数
     updateCrossAxisCount();
   }
@@ -53,8 +53,7 @@ class RcmdController extends GetxController {
       return {'status': false, 'msg': '正在加载中'};
     }
     try {
-      final response = await _videoRepo.getRandomVideos(num: 20);
-      final List<Video> videos = response.videoList;
+      final videos = await _videoRepo.getVideos();
 
       if (type == 'init') {
         videoList.clear();
@@ -103,8 +102,8 @@ class RcmdController extends GetxController {
     }
   }
 
-  void blockUserCb(int uid) {
-    videoList.removeWhere((e) => e.uid == uid);
+  void blockUserCb(String userId) {
+    videoList.removeWhere((e) => e.id == userId);
     videoList.refresh();
     SmartDialog.showToast('已移除相关视频');
   }

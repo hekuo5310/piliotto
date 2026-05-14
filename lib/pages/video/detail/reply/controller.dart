@@ -9,7 +9,7 @@ import 'package:piliotto/ottohub/models/video/reply/item.dart';
 class VideoReplyController extends GetxController {
   VideoReplyController(this.vid);
 
-  int vid;
+  String vid;
 
   List<ReplyItemModel> replyList = <ReplyItemModel>[];
   int currentPage = 0;
@@ -23,8 +23,9 @@ class VideoReplyController extends GetxController {
   final ICommentRepository _commentRepo = Get.find<ICommentRepository>();
 
   void updateVid(int newVid) {
-    if (vid != newVid) {
-      vid = newVid;
+    final newVidStr = newVid.toString();
+    if (vid != newVidStr) {
+      vid = newVidStr;
       replyList.clear();
       currentPage = 0;
       hasLoaded = false;
@@ -34,82 +35,47 @@ class VideoReplyController extends GetxController {
   }
 
   Future queryReplyList({String type = 'init'}) async {
-    if (isLoadingMore) {
-      return;
-    }
-
+    if (isLoadingMore) return;
     isLoadingMore = true;
-
-    if (type == 'init') {
-      currentPage = 0;
-      noMore = '';
-    }
-
-    if (noMore == '没有更多了') {
-      isLoadingMore = false;
-      return;
-    }
-
+    if (type == 'init') { currentPage = 0; noMore = ''; }
+    if (noMore == '没有更多了') { isLoadingMore = false; return; }
     try {
-      final logger = getLogger();
-      logger.d('开始获取评论列表，vid: $vid, offset: ${currentPage * ps}, num: $ps');
-
       final result = await _commentRepo.getVideoComments(
-        vid: vid,
+        videoId: vid,
         offset: currentPage * ps,
         num: ps,
       );
-      logger.d('获取评论列表成功，数量: ${result.replies.length}');
-
       final List<ReplyItemModel> replyItems = result.replies;
-
       if (type == 'init') {
         count = replyItems.length;
         replyList = replyItems;
       } else {
         replyList.addAll(replyItems);
       }
-
-      if (!result.hasMore) {
-        noMore = '没有更多了';
-      } else {
-        currentPage++;
-        noMore = '';
-      }
-
+      if (!result.hasMore) { noMore = '没有更多了'; } else { currentPage++; noMore = ''; }
       hasLoaded = true;
       update();
     } catch (e) {
-      final logger = getLogger();
-      logger.e('获取评论异常: ${e.toString()}');
+      getLogger().e('获取评论异常: ${e.toString()}');
       noMore = '获取评论失败';
       update();
     }
-
     isLoadingMore = false;
   }
 
-  Future onLoad() async {
-    await queryReplyList(type: 'onLoad');
-  }
+  Future onLoad() async => queryReplyList(type: 'onLoad');
 
-  Future<List<ReplyItemModel>> queryChildComments(int parentVcid) async {
+  Future<List<ReplyItemModel>> queryChildComments(String parentId) async {
     try {
-      final logger = getLogger();
-      logger.d('开始获取二级评论，vid: $vid, parentVcid: $parentVcid, offset: 0, num: $ps');
-
       final result = await _commentRepo.getVideoComments(
-        vid: vid,
-        parentVcid: parentVcid,
+        videoId: vid,
+        parentId: parentId,
         offset: 0,
         num: ps,
       );
-      logger.d('获取到二级评论数量: ${result.replies.length}');
-
       return result.replies;
     } catch (e) {
-      final logger = getLogger();
-      logger.e('获取二级评论异常: ${e.toString()}');
+      getLogger().e('获取二级评论异常: ${e.toString()}');
       return [];
     }
   }

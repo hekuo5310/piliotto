@@ -20,7 +20,7 @@ import 'package:piliotto/utils/utils.dart';
 import 'widgets/action_item.dart';
 
 class VideoIntroPanel extends StatefulWidget {
-  final int vid;
+  final String vid;
 
   const VideoIntroPanel({super.key, required this.vid});
 
@@ -82,7 +82,7 @@ class _VideoIntroPanelState extends State<VideoIntroPanel>
 class VideoInfo extends StatefulWidget {
   final dynamic videoDetail;
   final String? heroTag;
-  final int vid;
+  final String vid;
 
   const VideoInfo({
     super.key,
@@ -103,7 +103,7 @@ class _VideoInfoState extends State<VideoInfo>
   final Box<dynamic> localCache = GStrorage.localCache;
   final Box<dynamic> setting = GStrorage.setting;
   late double sheetHeight;
-  late int mid;
+  late String mid;
   late String memberHeroTag;
 
   bool isProcessing = false;
@@ -152,10 +152,10 @@ class _VideoInfoState extends State<VideoInfo>
   // 用户主页
   void onPushMember() {
     feedBack();
-    if (widget.videoDetail.uid != null) {
-      mid = widget.videoDetail.uid!;
+    if (widget.videoDetail != null && widget.videoDetail.id != null) {
+      mid = widget.videoDetail.id!;
       memberHeroTag = Utils.makeHeroTag(mid);
-      String face = widget.videoDetail.avatarUrl ?? '';
+      String face = widget.videoDetail.coverUrl ?? '';
       Get.toNamed('/member?mid=$mid',
           arguments: {'face': face, 'heroTag': memberHeroTag});
     }
@@ -177,7 +177,7 @@ class _VideoInfoState extends State<VideoInfo>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SelectableText(
-            widget.videoDetail.title!,
+            widget.videoDetail?.title ?? '',
             maxLines: 2,
             style: const TextStyle(
               fontSize: 18,
@@ -189,7 +189,7 @@ class _VideoInfoState extends State<VideoInfo>
             child: Row(
               children: [
                 StatView(
-                  view: widget.videoDetail.viewCount ?? 0,
+                  view: widget.videoDetail?.views ?? 0,
                   size: 'medium',
                 ),
                 const SizedBox(width: 10),
@@ -201,7 +201,7 @@ class _VideoInfoState extends State<VideoInfo>
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  widget.videoDetail.time ?? '',
+                  widget.videoDetail?.createdAt ?? '',
                   style: TextStyle(
                     fontSize: 12,
                     color: t.colorScheme.outline,
@@ -220,12 +220,12 @@ class _VideoInfoState extends State<VideoInfo>
           ),
 
           /// 视频简介
-          if (widget.videoDetail.intro != null &&
-              widget.videoDetail.intro!.isNotEmpty)
+          if (widget.videoDetail?.description != null &&
+              widget.videoDetail!.description!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: MarkdownText(
-                text: widget.videoDetail.intro ?? '',
+                text: widget.videoDetail!.description ?? '',
                 style: TextStyle(
                   fontSize: 14,
                   color: t.colorScheme.onSurface,
@@ -262,7 +262,7 @@ class _VideoInfoState extends State<VideoInfo>
                     children: [
                       NetworkImgLayer(
                         type: 'avatar',
-                        src: widget.videoDetail.avatarUrl,
+                        src: widget.videoDetail?.coverUrl,
                         width: 40,
                         height: 40,
                         fadeInDuration: Duration.zero,
@@ -274,7 +274,7 @@ class _VideoInfoState extends State<VideoInfo>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.videoDetail.username!,
+                              widget.videoDetail?.authorUsername ?? '',
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -343,7 +343,7 @@ class _VideoInfoState extends State<VideoInfo>
           onTap: handleState(videoIntroController.actionLikeVideo),
           onLongPress: () => videoIntroController.oneThreeDialog(),
           selectStatus: videoIntroController.hasLike.value,
-          text: (widget.videoDetail.likeCount ?? 0).toString(),
+          text: (widget.videoDetail?.likes ?? 0).toString(),
         ),
       ),
       'collect': Obx(
@@ -353,7 +353,7 @@ class _VideoInfoState extends State<VideoInfo>
           onTap: () => showFavBottomSheet(),
           onLongPress: () => showFavBottomSheet(type: 'longPress'),
           selectStatus: videoIntroController.hasFav.value,
-          text: (widget.videoDetail.favoriteCount ?? 0).toString(),
+          text: (widget.videoDetail?.likes ?? 0).toString(),
         ),
       ),
       'share': ActionItem(

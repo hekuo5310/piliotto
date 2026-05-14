@@ -1,76 +1,64 @@
-import '../api/services/legacy_api_service.dart';
+import '../api/services/api_service.dart';
 import '../models/dynamics/result.dart';
 import 'package:piliotto/repositories/base_repository.dart';
 import 'package:piliotto/repositories/i_dynamics_repository.dart';
 
 class OttohubDynamicsRepository extends BaseRepository implements IDynamicsRepository {
-  @override
-  Future<List<DynamicItemModel>> getNewBlogs(
-      {int offset = 0, int num = 10}) async {
-    final res = await LegacyApiService.getNewBlogList(offset: offset, num: num);
-    if (res['status'] == 'success') {
-      final List<dynamic> blogList = res['blog_list'] as List;
-      return blogList.map((blog) => DynamicItemModel.fromJson(blog)).toList();
-    }
-    throw Exception(res['message'] ?? '获取最新动态失败');
-  }
-
-  @override
-  Future<List<DynamicItemModel>> getPopularBlogs(
-      {int timeLimit = 7, int offset = 0, int num = 10}) async {
-    final res = await LegacyApiService.getPopularBlogList(
-        timeLimit: timeLimit, offset: offset, num: num);
-    if (res['status'] == 'success') {
-      final List<dynamic> blogList = res['blog_list'] as List;
-      return blogList.map((blog) => DynamicItemModel.fromJson(blog)).toList();
-    }
-    throw Exception(res['message'] ?? '获取热门动态失败');
-  }
-
-  @override
-  Future<Map<String, dynamic>> getBlogDetail(
-      {required int bid, CacheConfig? cacheConfig}) {
-    return withCache(
-      'getBlogDetail_$bid',
-      () => LegacyApiService.getBlogDetail(bid: bid),
-      cacheConfig:
-          cacheConfig ?? const CacheConfig(duration: Duration(minutes: 2)),
+  DynamicItemModel _fromZerexaDynamic(Map<String, dynamic> json) {
+    final List? images = json['images'] as List?;
+    final item = DynamicItemModel(
+      idStr: json['id']?.toString(),
+      type: (images != null && images.isNotEmpty) ? 'DYNAMIC_TYPE_DRAW' : 'DYNAMIC_TYPE_WORD',
     );
+    item.modules = ItemModulesModel(
+      moduleAuthor: ModuleAuthorModel(
+        face: json['author']?['gravatar_url']?.toString(),
+        mid: json['author']?['uid'] is int ? json['author']['uid'] : null,
+        name: json['author']?['username']?.toString(),
+        pubTime: json['created_at']?.toString(),
+      ),
+      moduleDynamic: ModuleDynamicModel(
+        desc: DynamicDescModel(text: json['content']?.toString() ?? ''),
+        major: (images != null && images.isNotEmpty)
+            ? DynamicMajorModel(
+                type: 'MAJOR_TYPE_DRAW',
+                draw: DynamicDrawModel(
+                  id: 0,
+                  items: images.map((url) => DynamicDrawItemModel(src: url.toString(), width: 0, height: 0, size: 0)).toList(),
+                ),
+              )
+            : null,
+      ),
+      moduleStat: ModuleStatModel(
+        like: Like(count: (json['like_count'] ?? 0).toString(), status: json['liked'] == true),
+        comment: Comment(count: '0'),
+        forward: ForWard(count: '0'),
+      ),
+    );
+    return item;
   }
 
   @override
-  Future<List<DynamicItemModel>> getRelatedBlogs(
-      {required int bid, int offset = 0, int num = 10}) async {
-    final res = await LegacyApiService.getRelatedBlogList(
-        bid: bid, offset: offset, num: num);
-    if (res['status'] == 'success') {
-      final List<dynamic> blogList = res['blog_list'] as List? ?? [];
-      return blogList.map((blog) => DynamicItemModel.fromJson(blog)).toList();
-    }
-    throw Exception(res['message'] ?? '获取相关动态失败');
+  Future<List<DynamicItemModel>> getUserDynamics({required String userId}) async {
+    final data = await ApiService.request('/users/$userId/dynamics');
+    return (data as List).map((e) => _fromZerexaDynamic(e as Map<String, dynamic>)).toList();
   }
 
   @override
-  Future<List<DynamicItemModel>> getUserBlogs(
-      {required int uid, int offset = 0, int num = 10}) async {
-    final res = await LegacyApiService.getUserBlogList(
-        uid: uid, offset: offset, num: num);
-    if (res['status'] == 'success') {
-      final List<dynamic> blogList = res['blog_list'] as List? ?? [];
-      return blogList.map((blog) => DynamicItemModel.fromJson(blog)).toList();
-    }
-    throw Exception(res['message'] ?? '获取用户动态失败');
+  Future<List<DynamicItemModel>> getMyDynamics() async {
+    final data = await ApiService.request('/users/me/dynamics', requireToken: true);
+    return (data as List).map((e) => _fromZerexaDynamic(e as Map<String, dynamic>)).toList();
   }
 
   @override
-  Future<Map<String, dynamic>> likeBlog({required int bid}) {
-    invalidateCache('getBlogDetail_$bid');
-    return LegacyApiService.likeBlog(bid: bid);
+  Future<Map<String, dynamic>> likeDynamic({required String dynamicId}) async {
+    final data = await ApiService.request('/dynamics/$dynamicId/like',
+        method: 'POST', requireToken: true);
+    return data as Map<String, dynamic>;
   }
 
   @override
-  Future<Map<String, dynamic>> favoriteBlog({required int bid}) {
-    invalidateCache('getBlogDetail_$bid');
-    return LegacyApiService.favoriteBlog(bid: bid);
+  Future<void> deleteDynamic({required String dynamicId}) async {
+    await ApiService.request('/dynamics/$dynamicId', method: 'DELETE', requireToken: true);
   }
 }

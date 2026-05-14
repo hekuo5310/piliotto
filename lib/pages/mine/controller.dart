@@ -46,10 +46,10 @@ class MineController extends GetxController {
 
   Future _refreshUserInfo() async {
     try {
-      final uid = userInfo.value.mid;
+      final uid = userInfo.value.mid?.toString();
       if (uid == null) return;
 
-      final profileInfo = await _userRepo.getUserProfileInfo(uid: uid);
+      final profileInfo = await _userRepo.getUserProfileInfo(userId: uid);
       if (profileInfo.coverUrl != null && profileInfo.coverUrl!.isNotEmpty) {
         userInfo.value.cover = profileInfo.coverUrl;
       }

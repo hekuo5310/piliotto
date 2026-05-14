@@ -42,13 +42,13 @@ class _ActionPanelState extends State<ActionPanel> {
 
     try {
       final dynamicId = widget.item.idStr ?? '';
-      final res = await _dynamicsRepo.likeBlog(
-        bid: int.tryParse(dynamicId) ?? 0,
+      final res = await _dynamicsRepo.likeDynamic(
+        dynamicId: dynamicId,
       );
 
       if (!mounted) return;
 
-      if (res['status'] == 'success') {
+      if (res['success'] == true) {
         SmartDialog.showToast(isLiked ? '取消点赞' : '点赞成功');
         setState(() {
           isLiked = !isLiked;

@@ -1,88 +1,57 @@
 import '../api/services/following_service.dart';
-import '../api/services/block_service.dart';
-import '../api/services/legacy_api_service.dart';
+import '../api/services/api_service.dart';
 import '../api/models/following.dart';
-import '../api/models/block.dart';
 import '../models/member/info.dart';
 import 'package:piliotto/repositories/base_repository.dart';
 import 'package:piliotto/repositories/i_user_repository.dart';
 
 class OttohubUserRepository extends BaseRepository implements IUserRepository {
   @override
-  Future<MemberInfoModel> getUserDetail(
-      {required int uid, CacheConfig? cacheConfig}) async {
+  Future<MemberInfoModel> getUserDetail({required String userId, CacheConfig? cacheConfig}) {
     return withCache(
-      'getUserDetail_$uid',
+      'getUserDetail_$userId',
       () async {
-        final res = await LegacyApiService.getUserDetail(uid: uid);
-        if (res['status'] == 'success') {
-          return MemberInfoModel(
-            mid: int.tryParse(res['uid'].toString()) ?? 0,
-            name: res['username']?.toString() ?? '',
-            sign: res['intro']?.toString() ?? '',
-            face: res['avatar_url']?.toString() ?? '',
-            cover: res['cover_url']?.toString() ?? '',
-            sex: res['sex']?.toString() ?? '',
-            fans: int.tryParse(res['fans_count'].toString()) ?? 0,
-            attention: int.tryParse(res['followings_count'].toString()) ?? 0,
-            archiveCount: int.tryParse(res['video_num'].toString()) ?? 0,
-            articleCount: int.tryParse(res['blog_num'].toString()) ?? 0,
-          );
-        }
-        throw Exception(res['message'] ?? '获取用户信息失败');
+        final data = await ApiService.request('/users/$userId');
+        final json = data as Map<String, dynamic>;
+        final user = json['user'] as Map<String, dynamic>? ?? json;
+        return MemberInfoModel(
+          mid: user['uid'] is int ? user['uid'] : int.tryParse(user['uid']?.toString() ?? '0'),
+          name: user['username']?.toString() ?? '',
+          sign: user['bio']?.toString() ?? '',
+          face: user['gravatar_url']?.toString() ?? '',
+          fans: user['follower_count'] is int ? user['follower_count'] : 0,
+          attention: user['following_count'] is int ? user['following_count'] : 0,
+          archiveCount: (json['videos'] as List?)?.length ?? 0,
+        );
       },
-      cacheConfig:
-          cacheConfig ?? const CacheConfig(duration: Duration(minutes: 5)),
+      cacheConfig: cacheConfig ?? const CacheConfig(duration: Duration(minutes: 5)),
     );
   }
 
   @override
-  Future<UserProfileInfo> getUserProfileInfo({required int uid}) async {
-    final res = await LegacyApiService.getUserDetail(uid: uid);
-    if (res['status'] == 'success') {
-      return UserProfileInfo(
-        coverUrl: res['cover_url']?.toString(),
-        followingCount:
-            int.tryParse(res['followings_count']?.toString() ?? '0') ?? 0,
-        fansCount: int.tryParse(res['fans_count']?.toString() ?? '0') ?? 0,
-      );
-    }
-    throw Exception(res['message'] ?? '获取用户资料失败');
+  Future<UserProfileInfo> getUserProfileInfo({required String userId}) async {
+    final data = await ApiService.request('/users/$userId');
+    final json = data as Map<String, dynamic>;
+    final user = json['user'] as Map<String, dynamic>? ?? json;
+    return UserProfileInfo(
+      followingCount: user['following_count'] is int ? user['following_count'] : 0,
+      fansCount: user['follower_count'] is int ? user['follower_count'] : 0,
+    );
   }
 
   @override
-  Future<FollowStatusResponse> getFollowStatus({required int followingUid}) {
-    return FollowingService.getFollowStatus(followingUid: followingUid);
+  Future<FollowStatusResponse> getFollowStatus({required String userId}) =>
+      FollowingService.getFollowStatus(userId);
+
+  @override
+  Future<FollowResponse> followUser({required String userId}) {
+    invalidateCache('getUserDetail_$userId');
+    return FollowingService.followUser(userId);
   }
 
   @override
-  Future<FollowResponse> followUser({required int followingUid}) {
-    invalidateCache('getUserDetail_$followingUid');
-    return FollowingService.followUser(followingUid: followingUid);
-  }
-
-  @override
-  Future<UserListResponse> getFollowingList(
-      {required int uid, int offset = 0, int num = 20}) {
-    return FollowingService.getFollowingList(
-        uid: uid, offset: offset, num: num);
-  }
-
-  @override
-  Future<UserListResponse> getFansList(
-      {required int uid, int offset = 0, int num = 20}) {
-    return FollowingService.getFansList(uid: uid, offset: offset, num: num);
-  }
-
-  @override
-  Future<BlockResponse> blockUser(
-      {required int blockedId, String? reason, int? reasonVisible}) {
-    return BlockService.blockUser(
-        blockedId: blockedId, reason: reason, reasonVisible: reasonVisible);
-  }
-
-  @override
-  Future<void> unblockUser({required int blockedId}) {
-    return BlockService.unblockUser(blockedId: blockedId);
+  Future<FollowResponse> unfollowUser({required String userId}) {
+    invalidateCache('getUserDetail_$userId');
+    return FollowingService.unfollowUser(userId);
   }
 }

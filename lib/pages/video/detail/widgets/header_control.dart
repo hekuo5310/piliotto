@@ -31,7 +31,7 @@ class HeaderControl extends StatefulWidget implements PreferredSizeWidget {
   final PlPlayerController? controller;
   final VideoDetailController? videoDetailCtr;
   final Floating? floating;
-  final int? vid;
+  final String? vid;
   final String? videoType;
   final bool? showSubtitleBtn;
 

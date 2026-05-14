@@ -424,9 +424,10 @@ class _ReplyItemState extends State<ReplyItem> {
         if (confirmed && context.mounted) {
           try {
             final result = await _commentRepo.deleteVideoComment(
-              vcid: item.rpid!,
+              videoId: item.oid?.toString() ?? '',
+              commentId: item.rpid!.toString(),
             );
-            if (result['status'] == 'success') {
+            if (result['success'] == true) {
               SmartDialog.showToast('评论删除成功，需手动刷新');
             } else {
               SmartDialog.showToast(result['message'] ?? '删除失败');

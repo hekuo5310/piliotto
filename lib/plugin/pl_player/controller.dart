@@ -91,7 +91,7 @@ class PlPlayerController {
   bool _isDisposed = false;
 
   // 记录历史记录
-  int _vid = 0;
+  String _vid = '';
   int _heartDuration = 0;
   bool _enableHeart = true;
   bool _isFirstTime = true;
@@ -322,7 +322,6 @@ class PlPlayerController {
     Duration? duration,
     // 方向
     String? direction,
-    // 记录历史记录
     int vid = 0,
     // 历史记录开关
     bool enableHeart = true,
@@ -338,7 +337,7 @@ class PlPlayerController {
       dataStatus.status.value = DataStatus.loading;
       // 初始化全屏方向
       _direction.value = direction ?? 'horizontal';
-      _vid = vid;
+      _vid = vid.toString();
       _enableHeart = enableHeart;
       _isFirstTime = isFirstTime;
       if (_videoPlayerController != null &&
@@ -1034,18 +1033,18 @@ class PlPlayerController {
     }
     // 播放状态变化时，更新
     if (type == 'status') {
-      await VideoService.saveWatchHistory(
-        vid: _vid,
-        lastWatchSecond:
-            playerStatus.status.value == PlayerStatus.completed ? -1 : progress,
+      await VideoService.watch(
+        _vid,
+        watchSeconds: playerStatus.status.value == PlayerStatus.completed ? -1 : progress,
+        videoSeconds: _duration.value.inSeconds,
       );
     } else
-    // 正常播放时，间隔5秒更新一次
     if (progress - _heartDuration >= 5) {
       _heartDuration = progress;
-      await VideoService.saveWatchHistory(
-        vid: _vid,
-        lastWatchSecond: progress,
+      await VideoService.watch(
+        _vid,
+        watchSeconds: progress,
+        videoSeconds: _duration.value.inSeconds,
       );
     }
   }

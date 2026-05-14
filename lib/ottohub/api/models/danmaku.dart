@@ -1,31 +1,37 @@
-class Danmaku {
-  final int danmakuId;
-  final String text;
-  final double time;
-  final String mode;
+class ZerexaDanmaku {
+  final String id;
+  final String videoId;
+  final String? userId;
+  final String? username;
+  final String content;
+  final double timeSec;
   final String color;
-  final String fontSize;
-  final String render;
+  final String mode;
+  final String? createdAt;
 
-  Danmaku({
-    required this.danmakuId,
-    required this.text,
-    required this.time,
-    required this.mode,
+  ZerexaDanmaku({
+    required this.id,
+    required this.videoId,
+    this.userId,
+    this.username,
+    required this.content,
+    required this.timeSec,
     required this.color,
-    required this.fontSize,
-    required this.render,
+    required this.mode,
+    this.createdAt,
   });
 
-  factory Danmaku.fromJson(Map<String, dynamic> json) {
-    return Danmaku(
-      danmakuId: json['danmaku_id'],
-      text: json['text'],
-      time: json['time'].toDouble(),
-      mode: json['mode'],
-      color: json['color'],
-      fontSize: json['font_size'],
-      render: json['render'],
+  factory ZerexaDanmaku.fromJson(Map<String, dynamic> json) {
+    return ZerexaDanmaku(
+      id: json['id']?.toString() ?? '',
+      videoId: json['video_id']?.toString() ?? '',
+      userId: json['user_id']?.toString(),
+      username: json['username']?.toString(),
+      content: json['content']?.toString() ?? '',
+      timeSec: (json['time_sec'] as num?)?.toDouble() ?? 0.0,
+      color: json['color']?.toString() ?? '#FFFFFF',
+      mode: json['mode']?.toString() ?? 'scroll',
+      createdAt: json['created_at']?.toString(),
     );
   }
 }

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
-import 'package:piliotto/ottohub/api/models/danmaku.dart';
+import 'package:piliotto/ottohub/api/models/danmaku.dart' show ZerexaDanmaku;
 import 'package:piliotto/pages/danmaku/index.dart';
 import 'package:piliotto/plugin/pl_player/index.dart';
 import 'package:piliotto/utils/storage.dart';
 
 class PlDanmaku extends StatefulWidget {
-  final int? vid;
+  final String? vid;
   final int? cid;
   final PlPlayerController playerController;
   final String type;
@@ -41,14 +41,14 @@ class _PlDanmakuState extends State<PlDanmaku> {
   late double strokeWidth;
   int latestAddedPosition = -1;
 
-  int get _videoId => widget.vid ?? widget.cid ?? 0;
+  String get _videoIdStr => widget.vid ?? widget.cid?.toString() ?? '0';
 
   @override
   void initState() {
     super.initState();
     enableShowDanmaku =
         setting.get(SettingBoxKey.enableShowDanmaku, defaultValue: false);
-    _plDanmakuController = PlDanmakuController(vid: _videoId);
+    _plDanmakuController = PlDanmakuController(vid: _videoIdStr);
     playerController = widget.playerController;
     if (mounted && widget.type == 'video') {
       if (enableShowDanmaku || playerController.isOpenDanmu.value) {
@@ -99,7 +99,7 @@ class _PlDanmakuState extends State<PlDanmaku> {
     }
     latestAddedPosition = currentPosition;
 
-    List<Danmaku>? currentDanmakuList =
+    List<ZerexaDanmaku>? currentDanmakuList =
         _plDanmakuController.getCurrentDanmaku(currentPosition);
 
     if (currentDanmakuList != null && currentDanmakuList.isNotEmpty) {
@@ -112,7 +112,7 @@ class _PlDanmakuState extends State<PlDanmaku> {
         Color danmakuColor = _parseColor(e.color);
 
         _controller!.addDanmaku(DanmakuContentItem(
-          e.text,
+          e.content,
           color: danmakuColor,
           type: danmakuType,
         ));
@@ -120,7 +120,7 @@ class _PlDanmakuState extends State<PlDanmaku> {
     }
   }
 
-  bool _shouldBlockDanmaku(Danmaku danmaku) {
+  bool _shouldBlockDanmaku(ZerexaDanmaku danmaku) {
     if (playerController.blockTypes.contains(6) && danmaku.color != '#ffffff') {
       return true;
     }

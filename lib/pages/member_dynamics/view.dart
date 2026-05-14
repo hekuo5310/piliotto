@@ -20,12 +20,12 @@ class _MemberDynamicsPageState extends State<MemberDynamicsPage> {
   late MemberDynamicsController _memberDynamicController;
   late Future _futureBuilderFuture;
   late ScrollController scrollController;
-  late int mid;
+  late String mid;
 
   @override
   void initState() {
     super.initState();
-    mid = int.parse(Get.parameters['mid']!);
+    mid = Get.parameters['mid'] ?? '';
     final String heroTag = Utils.makeHeroTag(mid);
     _memberDynamicController =
         Get.put(MemberDynamicsController(), tag: heroTag);

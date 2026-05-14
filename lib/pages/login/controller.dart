@@ -15,10 +15,10 @@ import 'package:piliotto/utils/storage.dart';
 class LoginPageController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  final TextEditingController usernameTextController = TextEditingController();
   final TextEditingController emailTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
-  final TextEditingController verificationCodeController =
-      TextEditingController();
+  final TextEditingController verificationCodeController = TextEditingController();
 
   final FocusNode emailTextFieldNode = FocusNode();
   final FocusNode passwordTextFieldNode = FocusNode();
@@ -34,25 +34,16 @@ class LoginPageController extends GetxController {
   Timer? timer;
   RxBool smsCodeSendStatus = false.obs;
 
-  void toggleMode() {
-    isRegisterMode.value = !isRegisterMode.value;
-  }
+  void toggleMode() => isRegisterMode.value = !isRegisterMode.value;
 
   void sendVerificationCode() async {
     if (!GetUtils.isEmail(emailTextController.text.trim())) {
       SmartDialog.showToast('请输入有效的邮箱地址');
       return;
     }
-
-    if (!emailTextController.text.trim().endsWith('@qq.com')) {
-      SmartDialog.showToast('请使用QQ邮箱注册');
-      return;
-    }
-
     smsCodeSendStatus.value = true;
     try {
-      await AuthService.sendRegisterVerificationCode(
-          email: emailTextController.text.trim());
+      await AuthService.sendRegisterCode(email: emailTextController.text.trim());
       SmartDialog.showToast('验证码已发送到您的邮箱');
       startTimer();
     } catch (e) {
@@ -63,45 +54,34 @@ class LoginPageController extends GetxController {
 
   void submit() async {
     if (!formKey.currentState!.validate()) return;
-
-    if (!agreedToOttohub.value) {
-      SmartDialog.showToast('请先同意 OttoHub 用户协议和隐私政策');
-      return;
-    }
-
-    if (!agreedToPiliotto.value) {
-      SmartDialog.showToast('请先同意 PiliOtto 用户协议和隐私政策');
-      return;
-    }
-
-    if (isRegisterMode.value) {
-      await _register();
-    } else {
-      await _login();
-    }
+    if (!agreedToOttohub.value) { SmartDialog.showToast('请先同意用户协议和隐私政策'); return; }
+    if (!agreedToPiliotto.value) { SmartDialog.showToast('请先同意 PiliOtto 用户协议和隐私政策'); return; }
+    if (isRegisterMode.value) { await _register(); } else { await _login(); }
   }
 
   Future _login() async {
     isLoading.value = true;
     try {
       final response = await AuthService.login(
-        email: emailTextController.text.trim(),
+        username: usernameTextController.text.trim().isNotEmpty
+            ? usernameTextController.text.trim()
+            : emailTextController.text.trim(),
         password: passwordTextController.text.trim(),
       );
-
+      if (response.token == null) {
+        SmartDialog.showToast(response.error ?? '登录失败');
+        return;
+      }
+      final user = response.user;
       final userInfo = UserInfoData(
         isLogin: true,
-        mid: int.tryParse(response.uid) ?? 0,
-        face: response.avatarUrl,
-        cover: response.coverUrl,
-        uname: 'user_${response.uid}',
+        mid: user?.uid ?? 0,
+        face: user?.gravatarUrl,
+        uname: user?.username ?? '',
       );
-
       Box userInfoCache = GStrorage.userInfo;
       await userInfoCache.put('userInfoCache', userInfo);
-
-      await _refreshLoginStatus(true, response.avatarUrl);
-
+      await _refreshLoginStatus(true, user?.gravatarUrl);
       SmartDialog.showToast('登录成功');
       Get.back();
     } catch (e) {
@@ -115,24 +95,25 @@ class LoginPageController extends GetxController {
     isLoading.value = true;
     try {
       final response = await AuthService.register(
+        username: usernameTextController.text.trim(),
         email: emailTextController.text.trim(),
         password: passwordTextController.text.trim(),
-        verificationCode: verificationCodeController.text.trim(),
+        code: verificationCodeController.text.trim(),
       );
-
+      if (response.token == null) {
+        SmartDialog.showToast(response.error ?? '注册失败');
+        return;
+      }
+      final user = response.user;
       final userInfo = UserInfoData(
         isLogin: true,
-        mid: int.tryParse(response.uid) ?? 0,
-        face: response.avatarUrl,
-        cover: response.coverUrl,
-        uname: 'user_${response.uid}',
+        mid: user?.uid ?? 0,
+        face: user?.gravatarUrl,
+        uname: user?.username ?? '',
       );
-
       Box userInfoCache = GStrorage.userInfo;
       await userInfoCache.put('userInfoCache', userInfo);
-
-      await _refreshLoginStatus(true, response.avatarUrl);
-
+      await _refreshLoginStatus(true, user?.gravatarUrl);
       SmartDialog.showToast('注册成功');
       Get.back();
     } catch (e) {
@@ -146,19 +127,12 @@ class LoginPageController extends GetxController {
     try {
       final mineCtr = Get.find<MineController>();
       mineCtr.userLogin.value = status;
-      if (status) {
-        mineCtr.userInfo.value = await GStrorage.userInfo.get('userInfoCache');
-      }
-
+      if (status) mineCtr.userInfo.value = await GStrorage.userInfo.get('userInfoCache');
       HomeController homeCtr = Get.find<HomeController>();
       homeCtr.updateLoginStatus(status);
-      if (avatarUrl != null) {
-        homeCtr.userFace.value = avatarUrl;
-      }
-
+      if (avatarUrl != null) homeCtr.userFace.value = avatarUrl;
       DynamicsController dynamicsCtr = Get.find<DynamicsController>();
       dynamicsCtr.userLogin.value = status;
-
       MediaController mediaCtr = Get.find<MediaController>();
       mediaCtr.userLogin.value = status;
     } catch (err) {
@@ -181,6 +155,7 @@ class LoginPageController extends GetxController {
   @override
   void dispose() {
     timer?.cancel();
+    usernameTextController.dispose();
     emailTextController.dispose();
     passwordTextController.dispose();
     verificationCodeController.dispose();

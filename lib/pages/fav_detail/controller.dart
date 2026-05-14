@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/repositories/i_video_repository.dart';
 import 'package:piliotto/services/loggeer.dart';
 
@@ -8,14 +8,9 @@ final _logger = getLogger();
 class FavDetailController extends GetxController {
   final IVideoRepository _videoRepo = Get.find<IVideoRepository>();
   RxString title = ''.obs;
-  RxList<Video> favList = <Video>[].obs;
+  RxList<ZerexaVideo> favList = <ZerexaVideo>[].obs;
   RxBool isLoading = false.obs;
-  RxBool isLoadingMore = false.obs;
-  RxBool hasMore = true.obs;
   RxString loadingText = '加载中...'.obs;
-
-  int _currentPage = 0;
-  final int _pageSize = 20;
 
   @override
   void onInit() {
@@ -25,55 +20,26 @@ class FavDetailController extends GetxController {
   }
 
   Future<void> queryFavorites({bool isLoadMore = false}) async {
-    if (isLoading.value || isLoadingMore.value) return;
-
-    if (!isLoadMore) {
-      isLoading.value = true;
-      _currentPage = 0;
-    } else {
-      if (!hasMore.value) return;
-      isLoadingMore.value = true;
-    }
-
+    if (isLoading.value) return;
+    isLoading.value = true;
     try {
-      final response = await _videoRepo.getFavoriteVideos(
-        offset: _currentPage,
-        num: _pageSize,
-      );
-
-      final List<Video> videos = response.videoList;
-
-      if (isLoadMore) {
-        favList.addAll(videos);
-      } else {
-        favList.value = videos;
-      }
-
-      hasMore.value = videos.length >= _pageSize;
-      if (!hasMore.value && favList.isNotEmpty) {
-        loadingText.value = '没有更多了';
-      }
-      _currentPage++;
+      final videos = await _videoRepo.getMyFavorites();
+      favList.value = videos;
+      loadingText.value = '没有更多了';
     } catch (e) {
       _logger.e('获取收藏列表失败: $e');
     } finally {
       isLoading.value = false;
-      isLoadingMore.value = false;
     }
   }
 
-  Future<void> onLoad() async {
-    await queryFavorites(isLoadMore: true);
-  }
+  Future<void> onLoad() async {}
+  Future<void> onRefresh() async => queryFavorites();
 
-  Future<void> onRefresh() async {
-    await queryFavorites();
-  }
-
-  Future<void> removeFavorite(int vid) async {
+  Future<void> removeFavorite(String id) async {
     try {
-      await _videoRepo.toggleFavorite(vid: vid);
-      favList.removeWhere((v) => v.vid == vid);
+      await _videoRepo.unfavorite(id);
+      favList.removeWhere((v) => v.id == id);
     } catch (e) {
       _logger.e('取消收藏失败: $e');
     }

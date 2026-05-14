@@ -2,50 +2,26 @@ import '../services/api_service.dart';
 import '../models/danmaku.dart';
 
 class DanmakuService {
-  static const String baseEndpoint = '/danmaku';
-
-  // 获取视频滚幕
-  static Future<List<Danmaku>> getDanmakus(int vid) async {
-    final response =
-        await ApiService.request('$baseEndpoint/$vid', requireToken: false);
-    final data = response['data'] as List;
-    return data.map((item) => Danmaku.fromJson(item)).toList();
+  static Future<List<ZerexaDanmaku>> getDanmakus(String videoId) async {
+    final data = await ApiService.request('/videos/$videoId/danmaku');
+    return (data as List).map((e) => ZerexaDanmaku.fromJson(e)).toList();
   }
 
-  // 发送滚幕
   static Future<void> sendDanmaku({
-    required dynamic vid,
-    required String text,
-    required dynamic time,
-    required String mode,
-    required String color,
-    required String fontSize,
-    required String render,
+    required String videoId,
+    required String content,
+    required double timeSec,
+    String color = '#FFFFFF',
+    String mode = 'scroll',
   }) async {
-    await ApiService.request(
-      baseEndpoint,
-      method: 'POST',
-      requireToken: true,
-      body: {
-        'vid': vid,
-        'text': text,
-        'time': time,
-        'mode': mode,
-        'color': color,
-        'font_size': fontSize,
-        'render': render,
-      },
-    );
-  }
-
-  // 删除滚幕
-  static Future<void> deleteDanmaku({
-    required int danmakuId,
-  }) async {
-    await ApiService.request(
-      '$baseEndpoint/$danmakuId',
-      method: 'DELETE',
-      requireToken: true,
-    );
+    await ApiService.request('/videos/$videoId/danmaku',
+        method: 'POST',
+        requireToken: true,
+        body: {
+          'content': content,
+          'time_sec': timeSec,
+          'color': color,
+          'mode': mode,
+        });
   }
 }

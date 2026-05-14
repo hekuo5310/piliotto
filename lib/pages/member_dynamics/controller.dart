@@ -6,40 +6,26 @@ import 'package:piliotto/ottohub/models/dynamics/result.dart';
 class MemberDynamicsController extends GetxController {
   final IDynamicsRepository _dynamicsRepo = Get.find<IDynamicsRepository>();
   final ScrollController scrollController = ScrollController();
-  late int mid;
-  int offset = 0;
-  int count = 0;
-  bool hasMore = true;
+  late String mid;
   RxList<DynamicItemModel> dynamicsList = <DynamicItemModel>[].obs;
   RxBool isLoading = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    mid = int.parse(Get.parameters['mid']!);
+    mid = Get.parameters['mid'] ?? '';
   }
 
   Future<Map<String, dynamic>> getMemberDynamic(String type) async {
     if (isLoading.value) return {};
-    if (type == 'onRefresh') {
-      offset = 0;
-      dynamicsList.clear();
-      count = 0;
-      hasMore = true;
-    }
-    if (!hasMore) {
-      return {};
-    }
+    if (type == 'onRefresh') dynamicsList.clear();
     isLoading.value = true;
     try {
-      final blogList = await _dynamicsRepo.getUserBlogs(uid: mid, offset: offset, num: 10);
-      if (blogList.isNotEmpty) {
-        dynamicsList.addAll(blogList);
-        offset += blogList.length;
-        count += blogList.length;
-        hasMore = blogList.length == 10;
+      final list = await _dynamicsRepo.getUserDynamics(userId: mid);
+      if (type == 'onRefresh') {
+        dynamicsList.value = list;
       } else {
-        hasMore = false;
+        dynamicsList.addAll(list);
       }
       return {'status': 'success'};
     } catch (e) {
@@ -49,8 +35,5 @@ class MemberDynamicsController extends GetxController {
     }
   }
 
-  // 上拉加载
-  Future onLoad() async {
-    getMemberDynamic('onLoad');
-  }
+  Future onLoad() async => getMemberDynamic('onLoad');
 }

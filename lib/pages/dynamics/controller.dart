@@ -144,7 +144,7 @@ class DynamicsController extends GetxController {
     if (tabLoadingStates['latest']!.value) return;
 
     try {
-      final items = await _dynamicsRepo.getNewBlogs(offset: 0, num: 10);
+      final items = await _dynamicsRepo.getMyDynamics();
       if (items.isEmpty) return;
 
       final newLatestId = items.first.idStr;
@@ -340,20 +340,12 @@ class DynamicsController extends GetxController {
     }
   }
 
-  Future<List<DynamicItemModel>> _queryLatestBlogs(
-      {String type = 'init'}) async {
-    return _dynamicsRepo.getNewBlogs(
-      offset: _tabOffsetCache['latest']!,
-      num: 10,
-    );
+  Future<List<DynamicItemModel>> _queryLatestBlogs({String type = 'init'}) async {
+    return _dynamicsRepo.getMyDynamics();
   }
 
-  Future<List<DynamicItemModel>> _queryPopularBlogs(
-      {String type = 'init'}) async {
-    return _dynamicsRepo.getPopularBlogs(
-      offset: _tabOffsetCache['popular']!,
-      num: 10,
-    );
+  Future<List<DynamicItemModel>> _queryPopularBlogs({String type = 'init'}) async {
+    return _dynamicsRepo.getMyDynamics();
   }
 
   void onTabChanged(String tab) {

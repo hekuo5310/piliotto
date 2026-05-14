@@ -38,7 +38,7 @@ class MediaController extends GetxController {
       return {'status': false, 'data': [], 'msg': '未登录'};
     }
     try {
-      final response = await _videoRepo.getFavoriteVideos(offset: 0, num: 5);
+      final response = await _videoRepo.getMyFavorites();
       return {'status': true, 'data': response};
     } catch (e) {
       return {'status': false, 'msg': e.toString()};

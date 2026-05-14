@@ -5,39 +5,29 @@ import 'package:piliotto/repositories/i_danmaku_repository.dart';
 
 class OttohubDanmakuRepository extends BaseRepository implements IDanmakuRepository {
   @override
-  Future<List<Danmaku>> getDanmakus(int vid, {CacheConfig? cacheConfig}) {
+  Future<List<ZerexaDanmaku>> getDanmakus(String videoId, {CacheConfig? cacheConfig}) {
     return withCache(
-      'getDanmakus_$vid',
-      () => DanmakuService.getDanmakus(vid),
-      cacheConfig:
-          cacheConfig ?? const CacheConfig(duration: Duration(minutes: 5)),
+      'getDanmakus_$videoId',
+      () => DanmakuService.getDanmakus(videoId),
+      cacheConfig: cacheConfig ?? const CacheConfig(duration: Duration(minutes: 5)),
     );
   }
 
   @override
   Future<void> sendDanmaku({
-    required dynamic vid,
-    required String text,
-    required dynamic time,
-    required String mode,
-    required String color,
-    required String fontSize,
-    required String render,
+    required String videoId,
+    required String content,
+    required double timeSec,
+    String color = '#FFFFFF',
+    String mode = 'scroll',
   }) {
-    invalidateCache('getDanmakus_$vid');
+    invalidateCache('getDanmakus_$videoId');
     return DanmakuService.sendDanmaku(
-      vid: vid,
-      text: text,
-      time: time,
-      mode: mode,
+      videoId: videoId,
+      content: content,
+      timeSec: timeSec,
       color: color,
-      fontSize: fontSize,
-      render: render,
+      mode: mode,
     );
-  }
-
-  @override
-  Future<void> deleteDanmaku({required int danmakuId}) {
-    return DanmakuService.deleteDanmaku(danmakuId: danmakuId);
   }
 }

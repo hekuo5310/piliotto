@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/common/constants.dart';
 import 'package:piliotto/common/skeleton/video_card_v.dart';
 import 'package:piliotto/common/widgets/http_error.dart';
@@ -124,7 +124,7 @@ class _RcmdPageState extends State<RcmdPage>
     );
   }
 
-  Widget contentGrid(RcmdController ctr, List<Video> videoList) {
+  Widget contentGrid(RcmdController ctr, List<ZerexaVideo> videoList) {
     int crossAxisCount = ctr.crossAxisCount.value;
     double mainAxisExtent = ResponsiveUtil.calculateMainAxisExtent(
       crossAxisCount: crossAxisCount,

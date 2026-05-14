@@ -32,7 +32,7 @@ class _MemberPageState extends State<MemberPage>
   late FavController _favController;
   late Future _futureBuilderFuture;
   final ScrollController _scrollController = ScrollController();
-  late int mid;
+  late String mid;
   TabController? _tabController;
   List<String> _tabs = [];
   int _previousTabIndex = 0;
@@ -43,8 +43,8 @@ class _MemberPageState extends State<MemberPage>
   @override
   void initState() {
     super.initState();
-    mid = int.parse(Get.parameters['mid']!);
-    heroTag = Get.arguments['heroTag'] ?? Utils.makeHeroTag(mid);
+    mid = Get.parameters['mid'] ?? '';
+    heroTag = Get.arguments?['heroTag'] ?? Utils.makeHeroTag(mid);
     _memberController = Get.put(MemberController(), tag: heroTag);
     _dynamicsController = Get.put(MemberDynamicsController(), tag: heroTag);
     _favController = Get.put(FavController(), tag: heroTag);

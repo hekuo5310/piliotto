@@ -34,7 +34,7 @@ class _BlogCommentInputState extends State<BlogCommentInput> {
   @override
   void initState() {
     super.initState();
-    _token = GStrorage.setting.get('ottohub_token');
+    _token = GStrorage.setting.get('zerexa_token');
     _controller.addListener(() {
       setState(() {
         _hasText = _controller.text.isNotEmpty;
@@ -69,20 +69,8 @@ class _BlogCommentInputState extends State<BlogCommentInput> {
     });
 
     try {
-      final response = await _commentRepo.commentBlog(
-        bid: widget.bid,
-        parentBcid: widget.parentBcid,
-        content: content,
-      );
-
-      if (response['status'] == 'success') {
-        SmartDialog.showToast('评论成功喵~');
-        _controller.clear();
-        _focusNode.unfocus();
-        widget.onCommentSuccess?.call();
-      } else {
-        SmartDialog.showToast(response['message'] ?? '评论失败');
-      }
+      SmartDialog.showToast('新API暂不支持动态评论');
+      return;
     } catch (e) {
       SmartDialog.showToast('评论失败: $e');
     } finally {

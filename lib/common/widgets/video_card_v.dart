@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:piliotto/utils/feed_back.dart';
 import 'package:piliotto/utils/image_save.dart';
 
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/repositories/i_user_repository.dart';
 import '../../utils/utils.dart';
 import '../constants.dart';
@@ -13,7 +13,7 @@ import 'network_img_layer.dart';
 import 'stat/view.dart';
 
 class VideoCardV extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
   final int crossAxisCount;
   final Function? blockUserCb;
 
@@ -25,7 +25,7 @@ class VideoCardV extends StatelessWidget {
   });
 
   void onPushDetail(String heroTag) {
-    Get.toNamed('/video?vid=${videoItem.vid}', arguments: {
+    Get.toNamed('/video?vid=${videoItem.id}', arguments: {
       'pic': videoItem.coverUrl,
       'heroTag': heroTag,
     });
@@ -33,7 +33,7 @@ class VideoCardV extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String heroTag = Utils.makeHeroTag(videoItem.vid.toString());
+    final String heroTag = Utils.makeHeroTag(videoItem.id);
 
     return InkWell(
       onTap: () => onPushDetail(heroTag),
@@ -55,21 +55,7 @@ class VideoCardV extends StatelessWidget {
                       height: maxHeight,
                     ),
                   ),
-                  if (videoItem.duration != null && videoItem.duration! > 0)
-                    if (crossAxisCount == 1)
-                      PBadge(
-                        bottom: 10,
-                        right: 10,
-                        text: Utils.timeFormat(videoItem.duration!),
-                      )
-                    else
-                      PBadge(
-                        bottom: 6,
-                        right: 7,
-                        size: 'small',
-                        type: 'gray',
-                        text: Utils.timeFormat(videoItem.duration!),
-                      ),
+                  // 新API无duration字段
                 ],
               );
             }),
@@ -86,7 +72,7 @@ class VideoCardV extends StatelessWidget {
 }
 
 class VideoContent extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
   final int crossAxisCount;
   final Function? blockUserCb;
 
@@ -121,7 +107,7 @@ class VideoContent extends StatelessWidget {
               Expanded(
                 flex: crossAxisCount == 1 ? 0 : 1,
                 child: Text(
-                  videoItem.username,
+                  videoItem.authorUsername ?? '',
                   maxLines: 1,
                   style: TextStyle(
                     fontSize: Theme.of(context).textTheme.labelMedium!.fontSize,
@@ -172,7 +158,7 @@ class VideoContent extends StatelessWidget {
 }
 
 class VideoStat extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
   final int crossAxisCount;
 
   const VideoStat({
@@ -185,7 +171,7 @@ class VideoStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        StatView(view: videoItem.viewCount),
+        StatView(view: videoItem.views),
         const SizedBox(width: 8),
         crossAxisCount > 1 ? const Spacer() : const SizedBox(width: 8),
         RichText(
@@ -195,7 +181,7 @@ class VideoStat extends StatelessWidget {
               fontSize: Theme.of(context).textTheme.labelSmall!.fontSize,
               color: Theme.of(context).colorScheme.outline,
             ),
-            text: Utils.formatTimestampToRelativeTime(videoItem.time),
+            text: videoItem.createdAt ?? '',
           ),
         ),
         const SizedBox(width: 4),
@@ -205,7 +191,7 @@ class VideoStat extends StatelessWidget {
 }
 
 class MorePanel extends StatelessWidget {
-  final Video videoItem;
+  final ZerexaVideo videoItem;
   final Function? blockUserCb;
 
   const MorePanel({
@@ -215,42 +201,7 @@ class MorePanel extends StatelessWidget {
   });
 
   void blockUser() async {
-    SmartDialog.show(
-      useSystem: true,
-      animationType: SmartAnimationType.centerFade_otherSlide,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('提示'),
-          content: Text(
-              '确定拉黑:${videoItem.username}(${videoItem.uid})?\n\n注：被拉黑的Up可以在隐私设置-黑名单管理中解除'),
-          actions: [
-            TextButton(
-              onPressed: () => SmartDialog.dismiss(),
-              child: Text(
-                '点错了',
-                style: TextStyle(color: Theme.of(context).colorScheme.outline),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await Get.find<IUserRepository>().blockUser(
-                    blockedId: videoItem.uid,
-                  );
-                  SmartDialog.dismiss();
-                  blockUserCb?.call(videoItem.uid);
-                  SmartDialog.showToast('拉黑成功');
-                } catch (error) {
-                  SmartDialog.dismiss();
-                  SmartDialog.showToast('拉黑失败: $error');
-                }
-              },
-              child: const Text('确认'),
-            )
-          ],
-        );
-      },
-    );
+    SmartDialog.showToast('新API暂不支持拉黑功能');
   }
 
   @override
@@ -280,8 +231,7 @@ class MorePanel extends StatelessWidget {
             onTap: blockUser,
             minLeadingWidth: 0,
             leading: const Icon(Icons.block, size: 19),
-            title: Text(
-              '拉黑up主 「${videoItem.username}」',
+            title: Text('拉黑up主 「${videoItem.authorUsername ?? ''}」',
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),

@@ -1,212 +1,86 @@
-class Video {
-  final int vid;
-  final int uid;
+class ZerexaVideo {
+  final String id;
   final String title;
-  final String time;
-  final int likeCount;
-  final int favoriteCount;
-  final int viewCount;
-  final int isDeleted;
-  final int auditStatus;
-  final String coverUrl;
-  final String username;
-  final String avatarUrl;
-  final int? ifLike;
-  final int? ifFavorite;
-  final String? intro;
-  final String? tag;
-  final String? collection;
-  final int? type;
+  final String? description;
+  final int views;
+  final int likes;
+  final String? authorUsername;
+  final int? authorUid;
+  final String? streamUrl;
+  final String? coverUrl;
+  final String? status;
   final String? category;
-  final int? duration;
-  final int? collectionSortOrder;
-  final int? channelId;
-  final ChannelDetail? channelDetail;
-  final String? videoUrl;
-  final String? audioUrl;
-  final String? userintro;
-  final int? videoWidth;
-  final int? videoHeight;
-  final String? videoSar;
-  final String? videoDar;
-  final int? commentCount;
-  final String? videoM3u8Url;
+  final String? sourceUrl;
+  final String? createdAt;
 
-  Video({
-    required this.vid,
-    required this.uid,
+  ZerexaVideo({
+    required this.id,
     required this.title,
-    required this.time,
-    required this.likeCount,
-    required this.favoriteCount,
-    required this.viewCount,
-    required this.isDeleted,
-    required this.auditStatus,
-    required this.coverUrl,
-    required this.username,
-    required this.avatarUrl,
-    this.ifLike,
-    this.ifFavorite,
-    this.intro,
-    this.tag,
-    this.collection,
-    this.type,
+    this.description,
+    this.views = 0,
+    this.likes = 0,
+    this.authorUsername,
+    this.authorUid,
+    this.streamUrl,
+    this.coverUrl,
+    this.status,
     this.category,
-    this.duration,
-    this.collectionSortOrder,
-    this.channelId,
-    this.channelDetail,
-    this.videoUrl,
-    this.audioUrl,
-    this.userintro,
-    this.videoWidth,
-    this.videoHeight,
-    this.videoSar,
-    this.videoDar,
-    this.commentCount,
-    this.videoM3u8Url,
+    this.sourceUrl,
+    this.createdAt,
   });
 
-  factory Video.fromJson(Map<String, dynamic> json) {
-    return Video(
-      vid: toInt(json['vid']),
-      uid: toInt(json['uid']),
-      title: json['title'] ?? '',
-      time: json['time'] ?? '',
-      likeCount: toInt(json['like_count']),
-      favoriteCount: toInt(json['favorite_count']),
-      viewCount: toInt(json['view_count']),
-      isDeleted: toInt(json['is_deleted']),
-      auditStatus: toInt(json['audit_status']),
-      coverUrl: json['cover_url'] ?? '',
-      username: json['username'] ?? '',
-      avatarUrl: json['avatar_url'] ?? '',
-      ifLike: toInt(json['if_like']),
-      ifFavorite: toInt(json['if_favorite']),
-      intro: json['intro'],
-      tag: json['tag'],
-      collection: json['collection'],
-      type: toInt(json['type']),
-      category: json['category'],
-      duration: toInt(json['duration']),
-      collectionSortOrder: toInt(json['collection_sort_order']),
-      channelId: toInt(json['channel_id']),
-      channelDetail: json['channel_detail'] != null
-          ? ChannelDetail.fromJson(json['channel_detail'])
-          : null,
-      videoUrl: json['video_url'],
-      audioUrl: json['audio_url'],
-      userintro: json['userintro'],
-      videoWidth: toInt(json['video_width']),
-      videoHeight: toInt(json['video_height']),
-      videoSar: json['video_sar'],
-      videoDar: json['video_dar'],
-      commentCount: toInt(json['comment_count']),
-      videoM3u8Url: json['video_m3u8_url'],
+  factory ZerexaVideo.fromJson(Map<String, dynamic> json) {
+    return ZerexaVideo(
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString(),
+      views: _toInt(json['views']),
+      likes: _toInt(json['likes']),
+      authorUsername: json['author_username']?.toString(),
+      authorUid: _toInt(json['author_uid']),
+      streamUrl: json['stream_url']?.toString(),
+      coverUrl: json['cover_url']?.toString(),
+      status: json['status']?.toString(),
+      category: json['category']?.toString(),
+      sourceUrl: json['source_url']?.toString(),
+      createdAt: json['created_at']?.toString(),
     );
   }
 
-  static int toInt(dynamic value) {
-    if (value == null) return 0;
-    if (value is int) return value;
-    if (value is String) {
-      try {
-        return int.parse(value);
-      } catch (e) {
-        return 0;
-      }
-    }
-    return 0;
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    return int.tryParse(v.toString()) ?? 0;
   }
 }
 
-class ChannelDetail {
-  final int channelId;
-  final String channelName;
-  final String channelTitle;
-  final String description;
-  final String coverUrl;
-
-  ChannelDetail({
-    required this.channelId,
-    required this.channelName,
-    required this.channelTitle,
-    required this.description,
-    required this.coverUrl,
-  });
-
-  factory ChannelDetail.fromJson(Map<String, dynamic> json) {
-    return ChannelDetail(
-      channelId: Video.toInt(json['channel_id']),
-      channelName: json['channel_name'] ?? '',
-      channelTitle: json['channel_title'] ?? '',
-      description: json['channel_description'] ?? '',
-      coverUrl: json['channel_cover_url'] ?? '',
-    );
-  }
+class VideoLikeResponse {
+  final bool liked;
+  VideoLikeResponse({required this.liked});
+  factory VideoLikeResponse.fromJson(Map<String, dynamic> json) =>
+      VideoLikeResponse(liked: json['liked'] == true);
 }
 
-class VideoListResponse {
-  final List<Video> videoList;
-  final int? totalCount;
-  final int? favoriteVideoCount;
-  final int? manageVideoCount;
-
-  VideoListResponse({
-    required this.videoList,
-    this.totalCount,
-    this.favoriteVideoCount,
-    this.manageVideoCount,
-  });
-
-  factory VideoListResponse.fromJson(Map<String, dynamic> json) {
-    return VideoListResponse(
-      videoList: (json['video_list'] as List<dynamic>)
-          .map((e) => Video.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      totalCount: Video.toInt(json['total_count']),
-      favoriteVideoCount: Video.toInt(json['favorite_video_count']),
-      manageVideoCount: Video.toInt(json['manage_video_count']),
-    );
-  }
+class VideoFavoriteResponse {
+  final bool success;
+  final bool favorited;
+  VideoFavoriteResponse({required this.success, required this.favorited});
+  factory VideoFavoriteResponse.fromJson(Map<String, dynamic> json) =>
+      VideoFavoriteResponse(
+        success: json['success'] == true,
+        favorited: json['favorited'] == true,
+      );
 }
 
-class VideoActionResponse {
-  final int ifLike;
-  final int likeCount;
-  final int? ifFavorite;
-  final int? favoriteCount;
-
-  VideoActionResponse({
-    this.ifLike = 0,
-    this.likeCount = 0,
-    this.ifFavorite,
-    this.favoriteCount,
-  });
-
-  factory VideoActionResponse.fromJson(Map<String, dynamic> json) {
-    return VideoActionResponse(
-      ifLike: json['if_like'] ?? 0,
-      likeCount: json['like_count'] ?? 0,
-      ifFavorite: json['if_favorite'],
-      favoriteCount: json['favorite_count'],
-    );
-  }
-}
-
-class VideoSubmitResponse {
-  final int vid;
-  final int ifAddExperience;
-
-  VideoSubmitResponse({
-    required this.vid,
-    required this.ifAddExperience,
-  });
-
-  factory VideoSubmitResponse.fromJson(Map<String, dynamic> json) {
-    return VideoSubmitResponse(
-      vid: json['vid'] ?? 0,
-      ifAddExperience: json['if_add_experience'] ?? 0,
-    );
-  }
+class VideoCoinResponse {
+  final bool success;
+  final int coinsGiven;
+  final int remaining;
+  VideoCoinResponse({required this.success, required this.coinsGiven, required this.remaining});
+  factory VideoCoinResponse.fromJson(Map<String, dynamic> json) =>
+      VideoCoinResponse(
+        success: json['success'] == true,
+        coinsGiven: json['coinsGiven'] is int ? json['coinsGiven'] : 0,
+        remaining: json['remaining'] is int ? json['remaining'] : 0,
+      );
 }

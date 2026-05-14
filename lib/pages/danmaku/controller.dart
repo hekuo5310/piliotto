@@ -4,29 +4,25 @@ import 'package:piliotto/ottohub/api/services/danmaku_service.dart';
 import 'package:piliotto/services/loggeer.dart';
 
 class PlDanmakuController {
-  final int vid;
-  final Function(List<Danmaku>)? onLoaded;
+  final String vid;
+  final Function(List<ZerexaDanmaku>)? onLoaded;
 
-  PlDanmakuController({
-    required this.vid,
-    this.onLoaded,
-  });
+  PlDanmakuController({required this.vid, this.onLoaded});
 
-  static final Set<int> _loadingVids = {};
-  static final Map<int, List<Danmaku>> _cachedDanmaku = {};
+  static final Set<String> _loadingVids = {};
+  static final Map<String, List<ZerexaDanmaku>> _cachedDanmaku = {};
 
-  SplayTreeMap<int, List<Danmaku>> _danmakuMap = SplayTreeMap();
+  SplayTreeMap<int, List<ZerexaDanmaku>> _danmakuMap = SplayTreeMap();
   bool _loaded = false;
   bool _loading = false;
 
-  SplayTreeMap<int, List<Danmaku>> get danmakuMap => _danmakuMap;
+  SplayTreeMap<int, List<ZerexaDanmaku>> get danmakuMap => _danmakuMap;
   bool get loaded => _loaded;
   bool get initiated => _loaded;
 
   void initiate(int videoDuration, int progress) async {
     if (_loaded || _loading) return;
     if (_loadingVids.contains(vid)) return;
-
     _loading = true;
     _loadingVids.add(vid);
     await queryDanmaku();
@@ -41,14 +37,10 @@ class PlDanmakuController {
       onLoaded?.call(_cachedDanmaku[vid]!);
       return;
     }
-
-    getLogger().d('开始获取弹幕，vid: $vid');
     try {
       final response = await DanmakuService.getDanmakus(vid);
-      getLogger().d('获取到弹幕数量: ${response.length}');
       _cachedDanmaku[vid] = response;
       _danmakuMap = _mapDanmaku(response);
-      getLogger().d('弹幕映射完成，共 ${_danmakuMap.length} 个时间点');
       _loaded = true;
       onLoaded?.call(response);
     } catch (e) {
@@ -59,20 +51,17 @@ class PlDanmakuController {
     }
   }
 
-  SplayTreeMap<int, List<Danmaku>> _mapDanmaku(List<Danmaku> danmakuList) {
-    final map = SplayTreeMap<int, List<Danmaku>>();
-    for (final danmaku in danmakuList) {
-      final timeKey = danmaku.time.toInt();
-      map.putIfAbsent(timeKey, () => []).add(danmaku);
+  SplayTreeMap<int, List<ZerexaDanmaku>> _mapDanmaku(List<ZerexaDanmaku> list) {
+    final map = SplayTreeMap<int, List<ZerexaDanmaku>>();
+    for (final d in list) {
+      map.putIfAbsent(d.timeSec.toInt(), () => []).add(d);
     }
     return map;
   }
 
-  List<Danmaku>? getCurrentDanmaku(int progress) {
+  List<ZerexaDanmaku>? getCurrentDanmaku(int progress) {
     if (!_loaded) {
-      if (!_loading && !_loadingVids.contains(vid)) {
-        queryDanmaku();
-      }
+      if (!_loading && !_loadingVids.contains(vid)) queryDanmaku();
       return null;
     }
     return _danmakuMap[progress];
@@ -85,7 +74,7 @@ class PlDanmakuController {
     _loadingVids.remove(vid);
   }
 
-  static void clearCache(int vid) {
+  static void clearCache(String vid) {
     _cachedDanmaku.remove(vid);
     _loadingVids.remove(vid);
   }
@@ -95,3 +84,4 @@ class PlDanmakuController {
     _loadingVids.clear();
   }
 }
+
