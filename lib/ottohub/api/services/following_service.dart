@@ -14,9 +14,18 @@ class FollowingService {
     return FollowResponse.fromJson(data as Map<String, dynamic>);
   }
 
-  static Future<FollowStatusResponse> getFollowStatus(String userId) async {
-    final data = await ApiService.request('/users/$userId/follow-status',
-        requireToken: true);
-    return FollowStatusResponse.fromJson(data as Map<String, dynamic>);
+  static Future<List<Map<String, dynamic>>> getMyFollowing() async {
+    final data = await ApiService.request('/users/me/following', requireToken: true);
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  static Future<List<Map<String, dynamic>>> getMyFollowers() async {
+    final data = await ApiService.request('/users/me/followers', requireToken: true);
+    return (data as List).cast<Map<String, dynamic>>();
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserFollowers(String userId) async {
+    final data = await ApiService.request('/users/$userId/followers');
+    return (data as List).cast<Map<String, dynamic>>();
   }
 }

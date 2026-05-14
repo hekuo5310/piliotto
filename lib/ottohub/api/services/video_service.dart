@@ -133,11 +133,9 @@ class VideoService {
     return (data as List).map((e) => ZerexaVideo.fromJson(e)).toList();
   }
 
-  // 某用户视频列表（公开）
-  static Future<List<ZerexaVideo>> getUserVideos(String userId) async {
-    final data = await ApiService.request('/users/$userId');
-    final json = data as Map<String, dynamic>;
-    final videos = json['videos'] as List? ?? [];
-    return videos.map((e) => ZerexaVideo.fromJson(e)).toList();
+  // 观看历史
+  static Future<List<Map<String, dynamic>>> getHistory({int limit = 50, int offset = 0}) async {
+    final data = await ApiService.request('/users/me/history', requireToken: true, queryParams: {'limit': limit, 'offset': offset});
+    return (data as List).cast<Map<String, dynamic>>();
   }
 }

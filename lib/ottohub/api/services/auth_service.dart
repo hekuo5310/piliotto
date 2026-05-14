@@ -57,9 +57,18 @@ class AuthService {
     return SignInResponse.fromJson(data as Map<String, dynamic>);
   }
 
-  // 获取硬币余额
-  static Future<Map<String, dynamic>> getCoinBalance() async {
-    final data = await ApiService.request('/coins/balance', requireToken: true);
-    return data as Map<String, dynamic>;
+  // 修改用户名
+  static Future<String> updateUsername(String username) async {
+    final data = await ApiService.request('/users/me/username', method: 'PUT', requireToken: true, body: {'username': username});
+    return (data as Map<String, dynamic>)['username'] as String;
+  }
+
+  // 检查用户名可用
+  static Future<bool> checkUsernameAvailable(String username, {String? excludeId}) async {
+    final data = await ApiService.request('/auth/username-available', queryParams: {
+      'username': username,
+      if (excludeId != null) 'exclude_id': excludeId,
+    }, skipToken: true);
+    return (data as Map<String, dynamic>)['available'] == true;
   }
 }

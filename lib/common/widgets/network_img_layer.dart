@@ -37,9 +37,9 @@ class NetworkImgLayer extends StatelessWidget {
     if (src == '' || src == null) {
       return placeholder(context);
     }
-    // 检查是否是Ottohub的图片URL，如果是则不添加后缀
+    // 检查是否是Ottohub的图片URL，或完整HTTPS URL，如果是则不添加后缀
     String imageUrl;
-    if (src!.contains('ottohub.cn')) {
+    if (src!.contains('ottohub.cn') || src!.startsWith('http://') || src!.startsWith('https://')) {
       imageUrl = src!.startsWith('//') ? 'https:${src!}' : src!;
     } else {
       imageUrl = '${src!.startsWith('//') ? 'https:${src!}' : src!}@${quality ?? defaultImgQuality}q.webp';
