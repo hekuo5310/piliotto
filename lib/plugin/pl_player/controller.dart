@@ -322,7 +322,7 @@ class PlPlayerController {
     Duration? duration,
     // 方向
     String? direction,
-    int vid = 0,
+    String vid = '',
     // 历史记录开关
     bool enableHeart = true,
     // 是否首次加载

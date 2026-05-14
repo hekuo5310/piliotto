@@ -16,6 +16,7 @@ class VideoSearchController extends GetxController {
   RxList<ZerexaVideo> videoList = <ZerexaVideo>[].obs;
   RxBool isLoading = false.obs;
   RxBool isLoadingMore = false.obs;
+  RxBool hasMore = true.obs;
   RxString currentKeyword = ''.obs;
   RxInt crossAxisCount = 1.obs;
   RxString errorMessage = ''.obs;

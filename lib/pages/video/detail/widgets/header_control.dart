@@ -296,13 +296,11 @@ class _HeaderControlState extends State<HeaderControl> {
                         });
                         try {
                           await Get.find<IDanmakuRepository>().sendDanmaku(
-                            vid: widget.vid!,
-                            text: msg,
-                            time: widget.controller!.position.value.inSeconds,
+                            videoId: widget.vid!,
+                            content: msg,
+                            timeSec: widget.controller!.position.value.inSeconds.toDouble(),
                             mode: 'scroll',
-                            color: 'ffffff',
-                            fontSize: '25px',
-                            render: '',
+                            color: '#ffffff',
                           );
                           SmartDialog.showToast('发送成功');
                           Get.back();
@@ -842,7 +840,7 @@ class _HeaderControlState extends State<HeaderControl> {
                   constraints: const BoxConstraints(maxWidth: 200),
                   child: Obx(
                     () => Text(
-                      videoIntroController?.videoDetail.value.title ?? '',
+                      videoIntroController?.videoDetail.value?.title ?? '',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -927,9 +925,9 @@ class _HeaderControlState extends State<HeaderControl> {
                   }
                   if (canUsePiP && widget.floating != null) {
                     final videoWidth =
-                        widget.videoDetailCtr?.videoItem.videoWidth ?? 16;
+                        widget.videoDetailCtr?.videoItem.views ?? 16;
                     final videoHeight =
-                        widget.videoDetailCtr?.videoItem.videoHeight ?? 9;
+                        widget.videoDetailCtr?.videoItem.views ?? 9;
                     final Rational aspectRatio =
                         Rational(videoWidth, videoHeight);
                     await widget.floating!

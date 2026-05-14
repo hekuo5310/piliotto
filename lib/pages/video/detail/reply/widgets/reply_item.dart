@@ -682,9 +682,10 @@ class MorePanel extends StatelessWidget {
                     Navigator.of(ctx).pop();
                     try {
                       final result = await Get.find<ICommentRepository>().deleteVideoComment(
-                        vcid: item.rpid!,
+                        videoId: item.oid?.toString() ?? '',
+                        commentId: item.rpid!.toString(),
                       );
-                      if (result['status'] == 'success') {
+                      if (result['success'] == true) {
                         SmartDialog.showToast('评论删除成功，需手动刷新');
                         if (context.mounted) {
                           Navigator.of(context).pop();

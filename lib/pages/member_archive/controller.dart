@@ -10,11 +10,17 @@ class MemberArchiveController extends GetxController {
   late String mid;
   RxList<VListItemModel> archivesList = <VListItemModel>[].obs;
   RxBool isLoading = false.obs;
+  RxList<Map<String, String>> orderList = [
+    {'type': 'pubdate', 'label': '最新发布'},
+    {'type': 'click', 'label': '最多播放'},
+  ].obs;
+  RxMap<String, String> currentOrder = <String, String>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     mid = Get.parameters['mid'] ?? '';
+    currentOrder.value = orderList.first;
   }
 
   Future<void> getMemberArchive(String type) async {

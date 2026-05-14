@@ -13,6 +13,7 @@ class FavController extends GetxController {
 
   RxList<ZerexaVideo> favoriteList = <ZerexaVideo>[].obs;
   RxBool isLoading = false.obs;
+  RxBool hasMore = false.obs;
   RxInt crossAxisCount = 1.obs;
 
   @override

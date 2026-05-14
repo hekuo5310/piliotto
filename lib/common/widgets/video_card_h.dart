@@ -44,7 +44,6 @@ class VideoCardH extends StatelessWidget {
 
   String get _coverUrl {
     if (videoItem is ZerexaVideo) return videoItem.coverUrl ?? '';
-    }
     return videoItem.pic ?? videoItem.coverUrl ?? '';
   }
 

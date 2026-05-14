@@ -118,7 +118,7 @@ class _UserListPageState extends State<UserListPage> {
                   Get.toNamed(
                     '/member?mid=${user.uid}',
                     arguments: {
-                      'face': user.avatarUrl,
+                      'face': user.gravatarUrl,
                       'heroTag': heroTag,
                     },
                   );
@@ -129,7 +129,7 @@ class _UserListPageState extends State<UserListPage> {
                     width: 40,
                     height: 40,
                     type: 'avatar',
-                    src: user.avatarUrl,
+                    src: user.gravatarUrl,
                   ),
                 ),
                 title: Text(

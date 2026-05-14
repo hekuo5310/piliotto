@@ -99,7 +99,6 @@ class ModuleAuthorModel {
   factory ModuleAuthorModel.fromTimelineItem(dynamic item) {
     return ModuleAuthorModel();
   }
-  }
 }
 
 class ModuleDynamicModel {

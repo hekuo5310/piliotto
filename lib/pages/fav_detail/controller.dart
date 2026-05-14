@@ -10,6 +10,7 @@ class FavDetailController extends GetxController {
   RxString title = ''.obs;
   RxList<ZerexaVideo> favList = <ZerexaVideo>[].obs;
   RxBool isLoading = false.obs;
+  RxBool hasMore = false.obs;
   RxString loadingText = '加载中...'.obs;
 
   @override

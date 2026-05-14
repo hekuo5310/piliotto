@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:piliotto/ottohub/api/models/video.dart';
+import 'package:piliotto/ottohub/api/models/video.dart' show ZerexaVideo;
 import 'package:piliotto/common/constants.dart';
 import 'package:piliotto/common/widgets/network_img_layer.dart';
 import 'package:piliotto/utils/download.dart';
@@ -25,7 +25,7 @@ Future<dynamic> imageSaveDialog(BuildContext context, dynamic videoItem, Functio
               NetworkImgLayer(
                 width: imgWidth,
                 height: imgWidth / StyleString.aspectRatio,
-                src: videoItem is Video
+                src: videoItem is ZerexaVideo
                     ? videoItem.coverUrl
                     : (videoItem.pic! as String),
                 quality: 100,
@@ -70,8 +70,8 @@ Future<dynamic> imageSaveDialog(BuildContext context, dynamic videoItem, Functio
                   tooltip: '保存封面图',
                   onPressed: () async {
                     String imageUrl;
-                    if (videoItem is Video) {
-                      imageUrl = videoItem.coverUrl;
+                    if (videoItem is ZerexaVideo) {
+                      imageUrl = videoItem.coverUrl ?? '';
                     } else if (videoItem.pic != null) {
                       imageUrl = videoItem.pic as String;
                     } else {

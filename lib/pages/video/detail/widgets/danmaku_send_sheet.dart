@@ -3,10 +3,10 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 
 class DanmakuSendSheet extends StatefulWidget {
-  final int vid;
+  final String vid;
   final int currentTime;
   final Future<void> Function({
-    required int vid,
+    required String vid,
     required String text,
     required int time,
     required String mode,
@@ -25,10 +25,10 @@ class DanmakuSendSheet extends StatefulWidget {
   State<DanmakuSendSheet> createState() => _DanmakuSendSheetState();
 
   static void show({
-    required int vid,
+    required String vid,
     required int currentTime,
     required Future<void> Function({
-      required int vid,
+      required String vid,
       required String text,
       required int time,
       required String mode,
